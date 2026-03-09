@@ -172,4 +172,70 @@ document.addEventListener('DOMContentLoaded', () => {
             }).join('');
         }
     }
+
+    // ---- Club Leaderboard ----
+    const publicLbContainer = document.getElementById('publicLeaderboardContainer');
+    const publicLbBtns = document.querySelectorAll('[data-public-lb]');
+    
+    const sumLog = (log, type) => {
+        let total = 0;
+        if (!log || !log.exercises) return total;
+        log.exercises.forEach(ex => {
+            if (ex.category === type) total += parseFloat(ex.count) || 0;
+        });
+        return total;
+    };
+
+    const renderPublicLeaderboard = (type) => {
+        if (!publicLbContainer || typeof Database === 'undefined') return;
+        const logs = Database.getAllTrainingLogs() || [];
+        const players = Database.getPlayers() || [];
+        const playerMap = {};
+        
+        players.forEach(p => { playerMap[p.id] = { name: p.name, id: p.id, total: 0 }; });
+
+        logs.forEach(l => {
+            if (!playerMap[l.playerId]) playerMap[l.playerId] = { name: l.playerName, id: l.playerId, total: 0 };
+            let val = 0;
+            if (type === 'punches') val = sumLog(l, 'punches');
+            else if (type === 'kicks') val = sumLog(l, 'kicks');
+            else if (type === 'conditioning') val = sumLog(l, 'conditioning');
+            else if (type === 'active') val = 1;
+            playerMap[l.playerId].total += val;
+        });
+
+        const ranked = Object.values(playerMap).sort((a, b) => b.total - a.total).filter(p => p.total > 0);
+        if (ranked.length === 0) {
+            publicLbContainer.innerHTML = '<p class="text-center text-muted" style="padding:2rem;">No data yet. Members need to log training first!</p>';
+            return;
+        }
+        
+        const typeLabel = type === 'punches' ? 'Punches' : type === 'kicks' ? 'Kicks' : type === 'conditioning' ? 'Conditioning' : 'Sessions';
+        const maxVal = ranked[0].total;
+
+        // Show top 5 on landing page
+        publicLbContainer.innerHTML = ranked.slice(0, 5).map((p, i) => {
+            const rankCls = i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : '';
+            const pct = Math.round((p.total / maxVal) * 100);
+            return `<div class="tp-leaderboard-row">
+                <div class="tp-rank-badge ${rankCls}">${i + 1}</div>
+                <div style="flex:1;">
+                    <div style="font-weight:700;font-size:0.9rem;">${p.name}</div>
+                    <div class="tp-progress-bar-container"><div class="tp-progress-bar-fill" style="width:${pct}%;"></div></div>
+                </div>
+                <div style="text-align:right;font-weight:700;font-size:0.95rem;color:var(--primary);">${p.total.toLocaleString()}<br><small class="text-muted" style="font-size:0.72rem;">${typeLabel}</small></div>
+            </div>`;
+        }).join('');
+    };
+
+    if (publicLbContainer) {
+        renderPublicLeaderboard('punches');
+        publicLbBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                publicLbBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                renderPublicLeaderboard(btn.dataset.publicLb);
+            });
+        });
+    }
 });

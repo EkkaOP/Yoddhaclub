@@ -275,7 +275,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const disciplineInput = document.getElementById('newMemberDiscipline');
             const passwordInput = document.getElementById('newMemberPassword');
             const photoInput = document.getElementById('newMemberPhoto');
-            const planInput = document.getElementById('newMemberPlan');
             const addonsInput = document.getElementById('newMemberAddons');
             const enrollmentFeeInput = document.getElementById('newMemberEnrollmentFee');
             const monthlyFeeInput = document.getElementById('newMemberMonthlyFee');
@@ -291,15 +290,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const batch = batchInput.value.trim();
             const discipline = disciplineInput.value.trim();
             const password = passwordInput.value.trim();
-            const plan = planInput ? planInput.value.trim() : '';
             const addons = addonsInput ? addonsInput.value.trim() : '';
             const enrollmentFee = enrollmentFeeInput ? enrollmentFeeInput.value : 0;
             const monthlyFee = monthlyFeeInput ? monthlyFeeInput.value : 0;
             const discount = discountInput ? discountInput.value : 0;
             const photoFile = photoInput.files[0];
 
-            if (!name || !dob || !mobile || !password || !plan) {
-                errorDiv.textContent = 'Please fill out all required fields, including Fees Plan.';
+            if (!name || !dob || !mobile || !password) {
+                errorDiv.textContent = 'Please fill out all required fields.';
                 errorDiv.style.display = 'block';
                 successDiv.style.display = 'none';
                 return;
@@ -314,7 +312,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     batch,
                     discipline,
                     password,
-                    plan,
                     addons,
                     enrollmentFee,
                     monthlyFee,
@@ -336,7 +333,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         document.getElementById('receiptMemberId').textContent = result.player.id;
                         document.getElementById('receiptName').textContent = result.player.name;
                         document.getElementById('receiptBatch').textContent = result.player.batch || 'None';
-                        document.getElementById('receiptPlan').textContent = result.player.plan || 'N/A';
+                        document.getElementById('receiptPlan').textContent = 'N/A'; // Plan removed
                         document.getElementById('receiptAddons').textContent = result.player.addons || 'None';
                         
                         document.getElementById('receiptEnrollmentFee').textContent = `₹${result.player.enrollmentFee || 0}`;
@@ -538,6 +535,50 @@ document.addEventListener('DOMContentLoaded', () => {
                         const avatarUrl = player.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(player.name)}&background=FF0000&color=fff`;
                         const adminAvatarImg = document.getElementById('adminProfileAvatar');
                         adminAvatarImg.src = avatarUrl;
+
+                        // --- Social Media Contact Buttons ---
+                        const socialContainer = document.getElementById('adminSocialLinks');
+                        if (socialContainer) {
+                            const btns = [];
+
+                            // WhatsApp — use saved number or fallback to mobile
+                            const waNum = (player.whatsapp || player.mobile || '').replace(/\D/g, '');
+                            if (waNum) {
+                                btns.push(`<a href="https://wa.me/${waNum}" target="_blank" rel="noopener"
+                                    style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.5rem 1rem;border-radius:999px;font-size:0.82rem;font-weight:700;text-decoration:none;
+                                           background:#25D366;color:#fff;box-shadow:0 2px 8px rgba(37,211,102,0.4);transition:opacity 0.2s;"
+                                    onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
+                                    <i class="fa-brands fa-whatsapp" style="font-size:1rem;"></i> WhatsApp
+                                </a>`);
+                            }
+
+                            // Instagram
+                            const ig = player.instagram || '';
+                            if (ig) {
+                                const igUrl = ig.startsWith('http') ? ig : `https://instagram.com/${ig.replace('@','')}`;
+                                btns.push(`<a href="${igUrl}" target="_blank" rel="noopener"
+                                    style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.5rem 1rem;border-radius:999px;font-size:0.82rem;font-weight:700;text-decoration:none;
+                                           background:linear-gradient(135deg,#f9ce34,#ee2a7b,#6228d7);color:#fff;box-shadow:0 2px 8px rgba(238,42,123,0.4);transition:opacity 0.2s;"
+                                    onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
+                                    <i class="fa-brands fa-instagram" style="font-size:1rem;"></i> Instagram
+                                </a>`);
+                            }
+
+                            // Facebook
+                            const fb = player.facebook || '';
+                            if (fb) {
+                                const fbUrl = fb.startsWith('http') ? fb : `https://${fb}`;
+                                btns.push(`<a href="${fbUrl}" target="_blank" rel="noopener"
+                                    style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.5rem 1rem;border-radius:999px;font-size:0.82rem;font-weight:700;text-decoration:none;
+                                           background:#1877F2;color:#fff;box-shadow:0 2px 8px rgba(24,119,242,0.4);transition:opacity 0.2s;"
+                                    onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
+                                    <i class="fa-brands fa-facebook" style="font-size:1rem;"></i> Facebook
+                                </a>`);
+                            }
+
+                            socialContainer.innerHTML = btns.join('');
+                            socialContainer.style.display = btns.length > 0 ? 'flex' : 'none';
+                        }
 
                         // --- Photo Change Logic ---
                         const photoInput = document.getElementById('adminChangePhotoInput');
@@ -889,139 +930,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Manage Announcements / Chat Room Logic
-    const manageAnnouncementsModal = document.getElementById('manageAnnouncementsModal');
-    const openManageAnnouncementsNav = document.getElementById('openManageAnnouncementsNav');
-    const openAnnounceBtn = document.getElementById('openAnnounceBtn');
-    const closeManageAnnouncementsModal = document.getElementById('closeManageAnnouncementsModal');
-    const allAnnouncementsTableBody = document.querySelector('#allAnnouncementsTable tbody');
-    const addAnnouncementForm = document.getElementById('addAnnouncementForm');
-    const newAnnAudienceSelect = document.getElementById('newAnnAudience');
-
-    if (manageAnnouncementsModal && (openManageAnnouncementsNav || openAnnounceBtn) && closeManageAnnouncementsModal && allAnnouncementsTableBody && addAnnouncementForm) {
-        
-        const loadAllAnnouncements = () => {
-            const announcements = Database.getAnnouncements();
-            
-            if(announcements.length === 0) {
-                allAnnouncementsTableBody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">No announcements found.</td></tr>`;
-                return;
-            }
-
-            allAnnouncementsTableBody.innerHTML = announcements.map(a => {
-                const imgCell = a.imageUrl 
-                    ? `<img src="${a.imageUrl}" alt="Ann Image" style="width: 80px; height: 50px; object-fit: cover; border-radius: 4px;">` 
-                    : '<div style="width: 80px; height: 50px; background: var(--border); border-radius: 4px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 0.8rem;">No Image</div>';
-                
-                const dateStr = new Date(a.date).toLocaleDateString();
-                
-                return `
-                <tr>
-                    <td>${imgCell}</td>
-                    <td>
-                        <strong>${a.title}</strong><br>
-                        <small style="color: var(--text-muted); display: block; max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${a.message}</small>
-                    </td>
-                    <td><span class="badge ${a.targetAudience === 'All Members' ? 'badge-primary' : 'badge-secondary'}">${a.targetAudience}</span></td>
-                    <td>${dateStr}</td>
-                    <td><button class="btn btn-sm text-danger delete-ann-btn" style="padding: 0.25rem 0.5rem; background: transparent; border: 1px solid var(--error);" data-id="${a.id}"><i class="fa-solid fa-trash"></i></button></td>
-                </tr>
-                `;
-            }).join('');
-
-            // Add delete event listeners
-            document.querySelectorAll('.delete-ann-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    const id = e.currentTarget.getAttribute('data-id');
-                    if (confirm('Are you sure you want to delete this announcement?')) {
-                        Database.deleteAnnouncement(id);
-                        loadAllAnnouncements();
-                    }
-                });
-            });
-        };
-
-        const populateAudienceOptions = () => {
-            // Keep the first static options ('', 'All', 'Expired') and remove the rest
-            while(newAnnAudienceSelect.options.length > 3) {
-                newAnnAudienceSelect.remove(3);
-            }
-            
-            // Add batches
-            const batches = Database.getBatches();
-            batches.forEach(b => {
-                const opt = document.createElement('option');
-                opt.value = b.name;
-                opt.textContent = `Batch: ${b.name}`;
-                newAnnAudienceSelect.appendChild(opt);
-            });
-        };
-
-        const openAnnouncementsModal = (e) => {
-            if (e) e.preventDefault();
-            populateAudienceOptions();
-            loadAllAnnouncements();
-            manageAnnouncementsModal.classList.add('show');
-        };
-
-        if(openManageAnnouncementsNav) openManageAnnouncementsNav.addEventListener('click', openAnnouncementsModal);
-        if(openAnnounceBtn) openAnnounceBtn.addEventListener('click', openAnnouncementsModal);
-
-        closeManageAnnouncementsModal.addEventListener('click', () => {
-            manageAnnouncementsModal.classList.remove('show');
-        });
-
-        manageAnnouncementsModal.addEventListener('click', (e) => {
-            if (e.target === manageAnnouncementsModal) {
-                manageAnnouncementsModal.classList.remove('show');
-            }
-        });
-
-        addAnnouncementForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const titleInput = document.getElementById('newAnnTitle');
-            const audienceInput = document.getElementById('newAnnAudience');
-            const messageInput = document.getElementById('newAnnMessage');
-            const imageInput = document.getElementById('newAnnImage');
-            
-            const title = titleInput.value.trim();
-            const audience = audienceInput.value;
-            const message = messageInput.value.trim();
-            const file = imageInput.files[0];
-
-            if (title && audience && message) {
-                const saveAnnouncement = (base64Img) => {
-                    Database.addAnnouncement(title, message, audience, base64Img);
-                    
-                    titleInput.value = '';
-                    audienceInput.value = '';
-                    messageInput.value = '';
-                    imageInput.value = '';
-                    
-                    loadAllAnnouncements(); // refresh table
-                    
-                    const submitBtn = addAnnouncementForm.querySelector('button[type="submit"]');
-                    const originalText = submitBtn.innerHTML;
-                    submitBtn.innerHTML = '<i class="fa-solid fa-check"></i> Posted!';
-                    submitBtn.classList.add('btn-success');
-                    setTimeout(() => {
-                        submitBtn.innerHTML = originalText;
-                        submitBtn.classList.remove('btn-success');
-                    }, 2000);
-                };
-
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = function(event) {
-                        saveAnnouncement(event.target.result);
-                    };
-                    reader.readAsDataURL(file);
-                } else {
-                    saveAnnouncement('');
-                }
-            }
-        });
-    }
+    // Manage Announcements / Chat Room Logic (Removed - HTML was deleted)
 
     // Manage Batches Logic
     const manageBatchesModal = document.getElementById('manageBatchesModal');
@@ -2343,9 +2252,17 @@ document.addEventListener('DOMContentLoaded', () => {
         listEl.innerHTML = challenges.map(c => {
             const typeLabel = c.type === 'punches' ? '🥊 Punches' : c.type === 'kicks' ? '🦵 Kicks'
                 : c.type === 'conditioning' ? '💪 Conditioning' : '🔥 Streak (Days)';
+            const rewardHtml = c.reward
+                ? `<div style="margin-top:0.4rem;display:flex;align-items:center;gap:0.4rem;">
+                    <i class="fa-solid fa-gift" style="color:#f59e0b;font-size:0.82rem;"></i>
+                    <span style="font-size:0.82rem;color:#b45309;font-weight:600;">Reward: ${c.reward}</span>
+                  </div>`
+                : `<div style="margin-top:0.3rem;font-size:0.78rem;color:var(--text-muted);font-style:italic;">No reward set — click Fill Reward to add one</div>`;
+            const chalId = c.id;
+            const chalRewardEsc = (c.reward || '').replace(/`/g, '');
             return `<div class="dash-card" style="margin-bottom:0.75rem;padding:1rem;">
                 <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:0.5rem;">
-                    <div>
+                    <div style="flex:1;min-width:0;">
                         <strong style="font-size:0.95rem;">${c.title}</strong>
                         <span style="font-size:0.78rem;color:var(--text-muted);margin-left:0.5rem;">${typeLabel}</span>
                         <p style="font-size:0.82rem;color:var(--text-muted);margin:0.25rem 0 0;">${c.description}</p>
@@ -2353,15 +2270,45 @@ document.addEventListener('DOMContentLoaded', () => {
                             <span class="badge badge-secondary" style="font-size:0.75rem;">Target: ${c.targetValue.toLocaleString()}</span>
                             <span class="badge badge-primary" style="font-size:0.75rem;margin-left:0.3rem;">${c.completions.length} completed</span>
                         </div>
+                        ${rewardHtml}
                     </div>
-                    <button class="btn btn-sm" style="border:1px solid var(--primary);color:var(--primary);background:transparent;flex-shrink:0;" onclick="(function(){
-                        if(!confirm('Delete this challenge?')) return;
-                        Database.deleteTrainingChallenge('${c.id}');
-                        document.getElementById('openChallengesNav').click();
-                    })()"><i class='fa-solid fa-trash-can'></i></button>
+                    <div style="display:flex;flex-direction:column;gap:0.4rem;flex-shrink:0;">
+                        <button class="chal-reward-btn btn btn-sm"
+                            data-chal-id="${chalId}"
+                            data-chal-reward="${chalRewardEsc}"
+                            style="border:1px solid #f59e0b;color:#b45309;background:rgba(245,158,11,0.08);white-space:nowrap;">
+                            <i class="fa-solid fa-gift"></i> Fill Reward
+                        </button>
+                        <button class="chal-delete-btn btn btn-sm"
+                            data-chal-id="${chalId}"
+                            style="border:1px solid var(--primary);color:var(--primary);background:transparent;">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
                 </div>
             </div>`;
         }).join('');
+
+        // Attach Fill Reward button handlers
+        listEl.querySelectorAll('.chal-reward-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const id = btn.dataset.chalId;
+                const current = btn.dataset.chalReward || '';
+                const newReward = prompt('Enter reward for completing this challenge (leave empty to remove):', current);
+                if (newReward === null) return; // cancelled
+                Database.updateChallengeReward(id, newReward.trim());
+                loadChallenges();
+            });
+        });
+
+        // Attach delete button handlers
+        listEl.querySelectorAll('.chal-delete-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (!confirm('Delete this challenge?')) return;
+                Database.deleteTrainingChallenge(btn.dataset.chalId);
+                loadChallenges();
+            });
+        });
     };
 
     if (chalNav) {
@@ -2377,12 +2324,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (chalForm) {
         chalForm.addEventListener('submit', e => {
             e.preventDefault();
-            const title = document.getElementById('chalTitle')?.value.trim();
-            const desc = document.getElementById('chalDesc')?.value.trim();
+            const title  = document.getElementById('chalTitle')?.value.trim();
+            const desc   = document.getElementById('chalDesc')?.value.trim();
             const target = document.getElementById('chalTarget')?.value;
-            const type = document.getElementById('chalType')?.value;
+            const type   = document.getElementById('chalType')?.value;
+            const reward = document.getElementById('chalReward')?.value.trim() || '';
             if (!title || !target) { showMsg('chalFormMsg', 'Please fill required fields.', true); return; }
-            Database.addTrainingChallenge(title, desc, target, type);
+            Database.addTrainingChallenge(title, desc, target, type, reward);
             showMsg('chalFormMsg', '✅ Challenge created!');
             chalForm.reset();
             loadChallenges();
@@ -2450,6 +2398,537 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+// =============================================
+// BANNER UPLOAD — SMART PREVIEW & SIZE ADVISOR
+// =============================================
+(function () {
+    document.addEventListener('DOMContentLoaded', function () {
+    'use strict';
 
+    /**
+     * Config for each upload input.
+     * idealW × idealH = recommended dimensions (px)
+     * label          = human-readable context label
+     */
+    const BANNER_CONFIGS = [
+        {
+            inputId: 'newBannerImage',
+            label: 'Home Page Banner',
+            idealW: 1920,
+            idealH: 600,
+            note: 'Full-width hero banner displayed on the home page.'
+        },
+        {
+            inputId: 'newAnnImage',
+            label: 'Announcement / Chat Photo',
+            idealW: 1200,
+            idealH: 630,
+            note: 'Displayed inside announcement cards (social-share friendly 1.91:1 ratio).'
+        },
+        {
+            inputId: 'newEventBanner',
+            label: 'Event Banner',
+            idealW: 1200,
+            idealH: 400,
+            note: 'Shown as the event card thumbnail (3:1 landscape ratio).'
+        }
+    ];
 
+    // Suffix for the advisory panel IDs
+    const PANEL_SUFFIX = '_bannerAdvisor';
 
+    /**
+     * Build or refresh the advisory panel below the given input.
+     * @param {HTMLInputElement} input
+     * @param {object}           cfg    - entry from BANNER_CONFIGS
+     * @param {Image}            img    - loaded Image object
+     */
+    function renderAdvisory(input, cfg, img) {
+        const panelId = cfg.inputId + PANEL_SUFFIX;
+        let panel = document.getElementById(panelId);
+
+        if (!panel) {
+            panel = document.createElement('div');
+            panel.id = panelId;
+            input.parentNode.insertBefore(panel, input.nextSibling);
+        }
+
+        const W = img.naturalWidth;
+        const H = img.naturalHeight;
+        const ratio = H > 0 ? (W / H).toFixed(2) : '—';
+        const idealRatio = (cfg.idealW / cfg.idealH).toFixed(2);
+
+        // --- quality assessment ---
+        const tooSmall  = W < cfg.idealW * 0.5 || H < cfg.idealH * 0.5;
+        const wayTooBig = W > cfg.idealW * 3    || H > cfg.idealH * 3;
+        const tooWide   = W / H > (cfg.idealW / cfg.idealH) * 1.30;
+        const tooTall   = H / W > (cfg.idealH / cfg.idealW) * 1.30;
+        const nearIdeal = !tooSmall && !tooWide && !tooTall;
+
+        let statusIcon, statusColor, statusText, cropTip;
+        if (tooSmall) {
+            statusIcon  = '⚠️';
+            statusColor = '#b45309';
+            statusText  = 'Too Small';
+            cropTip     = `Image resolution is low. Upload at least ${Math.round(cfg.idealW * 0.5)} × ${Math.round(cfg.idealH * 0.5)} px for a clear result.`;
+        } else if (tooWide) {
+            statusIcon  = '✂️';
+            statusColor = '#1d4ed8';
+            statusText  = 'Too Wide';
+            cropTip     = `Crop the sides to roughly a ${cfg.idealW}:${cfg.idealH} ratio. Current width is much larger relative to height than needed.`;
+        } else if (tooTall) {
+            statusIcon  = '✂️';
+            statusColor = '#6d28d9';
+            statusText  = 'Too Tall';
+            cropTip     = `Crop top/bottom to a ${cfg.idealW}:${cfg.idealH} ratio. Current image is taller than the display area.`;
+        } else if (wayTooBig) {
+            statusIcon  = 'ℹ️';
+            statusColor = '#059669';
+            statusText  = 'Good (Very Large)';
+            cropTip     = `Great resolution! Consider compressing to reduce file size before uploading.`;
+        } else {
+            statusIcon  = '✅';
+            statusColor = '#059669';
+            statusText  = 'Good to Go!';
+            cropTip     = 'Image dimensions look great for this banner slot.';
+        }
+
+        // Thumbnail data URL
+        const thumb = (() => {
+            try {
+                const c = document.createElement('canvas');
+                const maxS = 320;
+                const scale = Math.min(maxS / W, maxS / H, 1);
+                c.width  = Math.round(W * scale);
+                c.height = Math.round(H * scale);
+                c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+                return c.toDataURL('image/jpeg', 0.8);
+            } catch(e) {
+                return '';
+            }
+        })();
+
+        panel.innerHTML = `
+        <div style="
+            margin-top: 0.75rem;
+            border: 1px solid ${nearIdeal ? '#d1fae5' : '#fde68a'};
+            border-radius: 12px;
+            overflow: hidden;
+            background: var(--bg-light);
+            font-size: 0.84rem;
+        ">
+            <!-- Header -->
+            <div style="
+                background: ${nearIdeal ? 'rgba(16,185,129,0.08)' : 'rgba(245,158,11,0.08)'};
+                padding: 0.6rem 1rem;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                border-bottom: 1px solid ${nearIdeal ? '#d1fae5' : '#fde68a'};
+            ">
+                <span style="font-size:1.15rem;">${statusIcon}</span>
+                <strong style="color:${statusColor};">${statusText}</strong>
+                <span style="color:var(--text-muted);margin-left:auto;font-size:0.78rem;">${cfg.label}</span>
+            </div>
+
+            <div style="display:flex;gap:0;flex-wrap:wrap;">
+                <!-- Thumbnail -->
+                ${thumb ? `<div style="
+                    flex-shrink:0;
+                    width:120px;
+                    background:#000;
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    border-right:1px solid var(--border);
+                ">
+                    <img src="${thumb}" alt="Preview" style="width:100%;height:90px;object-fit:cover;opacity:0.92;">
+                </div>` : ''}
+
+                <!-- Info grid -->
+                <div style="flex:1;padding:0.75rem 1rem;display:grid;grid-template-columns:1fr 1fr;gap:0.35rem 1.25rem;">
+                    <div>
+                        <div style="color:var(--text-muted);font-size:0.72rem;text-transform:uppercase;letter-spacing:0.04em;">Your Image</div>
+                        <div style="font-weight:700;color:var(--text-dark);">${W} × ${H} px</div>
+                        <div style="color:var(--text-muted);font-size:0.76rem;">Ratio ${ratio}:1</div>
+                    </div>
+                    <div>
+                        <div style="color:var(--text-muted);font-size:0.72rem;text-transform:uppercase;letter-spacing:0.04em;">Recommended</div>
+                        <div style="font-weight:700;color:var(--primary);">${cfg.idealW} × ${cfg.idealH} px</div>
+                        <div style="color:var(--text-muted);font-size:0.76rem;">Ratio ${idealRatio}:1</div>
+                    </div>
+
+                    <!-- Tip spans full width -->
+                    <div style="grid-column:1/-1;margin-top:0.25rem;padding:0.4rem 0.65rem;background:rgba(0,0,0,0.03);border-radius:6px;border-left:3px solid ${statusColor};color:var(--text-dark);line-height:1.45;">
+                        ${cropTip}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Note bar -->
+            <div style="padding:0.4rem 1rem;background:rgba(0,0,0,0.03);border-top:1px solid var(--border);color:var(--text-muted);font-size:0.75rem;">
+                <i class="fa-solid fa-circle-info" style="margin-right:0.3rem;"></i>${cfg.note}
+            </div>
+        </div>`;
+    }
+
+    /**
+     * Remove the advisory panel for a given input.
+     */
+    function clearAdvisory(inputId) {
+        const panel = document.getElementById(inputId + PANEL_SUFFIX);
+        if (panel) panel.remove();
+    }
+
+    /**
+     * Attach the change listener to one file input.
+     */
+    function attachAdvisor(cfg) {
+        // Use event delegation so we survive modal re-renders
+        document.addEventListener('change', function (e) {
+            if (e.target && e.target.id === cfg.inputId) {
+                const file = e.target.files[0];
+                if (!file || !file.type.startsWith('image/')) {
+                    clearAdvisory(cfg.inputId);
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = function (ev) {
+                    const img = new Image();
+                    img.onload = function () {
+                        renderAdvisory(e.target, cfg, img);
+                    };
+                    img.onerror = function () {
+                        clearAdvisory(cfg.inputId);
+                    };
+                    img.src = ev.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+
+    // ==========================================
+    // FINANCE & ANALYTICS & EXPORT LOGIC
+    // ==========================================
+
+    // Modals
+    const adminFinanceModal = document.getElementById('adminFinanceModal');
+    const closeAdminFinanceModal = document.getElementById('closeAdminFinanceModal');
+    const openFinanceNav = document.getElementById('openFinanceNav');
+
+    const adminAddExpenseModal = document.getElementById('adminAddExpenseModal');
+    const closeAdminAddExpenseModal = document.getElementById('closeAdminAddExpenseModal');
+    const openAddExpenseBtn = document.getElementById('openAddExpenseBtn');
+
+    // Export Buttons
+    const exportAttendanceBtn = document.getElementById('exportAttendanceBtn');
+    const exportMembersBtn = document.getElementById('exportMembersBtn');
+    const exportFinancialsBtn = document.getElementById('exportFinancialsBtn');
+    const financeModalExportBtn = document.getElementById('financeModalExportBtn');
+
+    // Utility: Export array of objects to Excel
+    function exportToExcel(data, filename) {
+        if (!data || !data.length) return alert('No data available to export.');
+        if (typeof XLSX === 'undefined') return alert('SheetJS library is not loaded.');
+        const ws = XLSX.utils.json_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+        XLSX.writeFile(wb, `${filename}_${new Date().toLocaleDateString().replace(/\//g, '-')}.xlsx`);
+    }
+
+    // Bind Export Buttons
+    if (exportAttendanceBtn) {
+        exportAttendanceBtn.addEventListener('click', () => {
+            const att = Database.getAttendance();
+            exportToExcel(att, 'Yoddha_Attendance');
+        });
+    }
+
+    if (exportMembersBtn) {
+        exportMembersBtn.addEventListener('click', () => {
+            const players = Database.getPlayers().map(p => ({
+                ID: p.id,
+                Name: p.name,
+                Age: p.age,
+                Batch: p.batch,
+                Plan: p.plan,
+                JoiningDate: p.joiningDate,
+                ParentName: p.parentName,
+                ParentPhone: p.parentPhone,
+                ParentProfession: p.parentProfession,
+                Address: p.address,
+                BloodGroup: p.bloodGroup,
+                DiscountPercent: p.discountPercent || 0,
+                Status: p.status || 'Active'
+            }));
+            exportToExcel(players, 'Yoddha_Members');
+        });
+    }
+
+    if (exportFinancialsBtn) {
+        exportFinancialsBtn.addEventListener('click', () => {
+            const payments = Database.getPayments().map(p => ({
+                Date: new Date(p.date).toLocaleDateString(),
+                Type: 'Revenue',
+                Description: `Fee Payment - ${p.paymentType} (${p.playerId})`,
+                Category: p.paymentType,
+                Amount: p.amount,
+                Method: p.method
+            }));
+            const expenses = Database.getExpenses().map(e => ({
+                Date: new Date(e.date).toLocaleDateString(),
+                Type: 'Expense',
+                Description: e.title,
+                Category: e.category,
+                Amount: -e.amount,
+                Method: 'N/A'
+            }));
+            const combined = [...payments, ...expenses].sort((a, b) => new Date(b.Date) - new Date(a.Date));
+            exportToExcel(combined, 'Yoddha_Financials_All');
+        });
+    }
+
+    let currentFinanceData = []; // Store currently filtered data for modal export
+    if (financeModalExportBtn) {
+        financeModalExportBtn.addEventListener('click', () => {
+            exportToExcel(currentFinanceData, 'Yoddha_Filtered_Finance');
+        });
+    }
+
+    // Modal Toggles via Event Delegation
+    document.addEventListener('click', (e) => {
+        
+        // Open Finance Dashboard
+        const financeBtn = e.target.closest('#openFinanceNav');
+        if (financeBtn) {
+            e.preventDefault();
+            if (adminFinanceModal) adminFinanceModal.classList.add('show');
+            if (window.innerWidth < 768) document.getElementById('sidebar').classList.remove('show');
+            if (typeof renderFinanceDashboard === 'function') {
+                renderFinanceDashboard('today');
+            }
+        }
+
+        // Close Finance Dashboard
+        const closeFinanceBtn = e.target.closest('#closeAdminFinanceModal');
+        if (closeFinanceBtn) {
+            if (adminFinanceModal) adminFinanceModal.classList.remove('show');
+        }
+
+        // Open Add Expense
+        const expenseBtn = e.target.closest('#openAddExpenseBtn');
+        if (expenseBtn) {
+            e.preventDefault();
+            if (adminAddExpenseModal) {
+                adminAddExpenseModal.classList.add('show');
+                const expDate = document.getElementById('expenseDate');
+                if (expDate) expDate.value = new Date().toISOString().split('T')[0];
+            }
+        }
+
+        // Close Add Expense
+        const closeExpenseBtn = e.target.closest('#closeAdminAddExpenseModal');
+        if (closeExpenseBtn) {
+            if (adminAddExpenseModal) adminAddExpenseModal.classList.remove('show');
+        }
+    });
+
+    // Add Expense Form Handling
+    const adminAddExpenseForm = document.getElementById('adminAddExpenseForm');
+    if (adminAddExpenseForm) {
+        adminAddExpenseForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const title = document.getElementById('expenseTitle').value.trim();
+            const amount = document.getElementById('expenseAmount').value;
+            const date = document.getElementById('expenseDate').value;
+            const category = document.getElementById('expenseCategory').value;
+            const notes = document.getElementById('expenseNotes').value.trim();
+
+            Database.addExpense(title, amount, category, date, notes);
+            
+            const msg = document.getElementById('expenseFormMsg');
+            msg.style.display = 'block';
+            msg.style.background = 'var(--success-light)';
+            msg.style.color = 'var(--success)';
+            msg.textContent = 'Expense added successfully!';
+
+            adminAddExpenseForm.reset();
+            setTimeout(() => {
+                msg.style.display = 'none';
+                adminAddExpenseModal.classList.remove('show');
+                if (adminFinanceModal.classList.contains('show')) {
+                    const activeBtn = document.querySelector('.finance-filter-btn.active');
+                    const filter = activeBtn ? activeBtn.dataset.filter : 'today';
+                    renderFinanceDashboard(filter);
+                }
+            }, 1000);
+        });
+    }
+
+    // Finance Dashboard Rendering
+    const filterBtns = document.querySelectorAll('.finance-filter-btn');
+    const customApplyBtn = document.getElementById('financeCustomApplyBtn');
+
+    if (filterBtns.length > 0) {
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                filterBtns.forEach(b => {
+                    b.classList.remove('active');
+                    b.style.background = 'var(--bg-light)';
+                    b.style.color = 'var(--text-dark)';
+                    b.style.border = '1px solid var(--border)';
+                });
+                btn.classList.add('active');
+                btn.style.background = 'var(--primary)';
+                btn.style.color = 'white';
+                btn.style.border = '1px solid var(--primary)';
+                renderFinanceDashboard(btn.dataset.filter);
+            });
+        });
+    }
+
+    if (customApplyBtn) {
+        customApplyBtn.addEventListener('click', () => {
+            filterBtns.forEach(b => {
+                b.classList.remove('active');
+                b.style.background = 'var(--bg-light)';
+                b.style.color = 'var(--text-dark)';
+                b.style.border = '1px solid var(--border)';
+            });
+            renderFinanceDashboard('custom');
+        });
+    }
+
+    function renderFinanceDashboard(filterType) {
+        const tbody = document.getElementById('financeDataTableBody');
+        const revEl = document.getElementById('financeSummaryRev');
+        const expEl = document.getElementById('financeSummaryExp');
+        const profitEl = document.getElementById('financeSummaryProfit');
+
+        if (!tbody || !revEl || !expEl || !profitEl) return;
+
+        const allPayments = Database.getPayments();
+        const allExpenses = Database.getExpenses();
+
+        const today = new Date();
+        today.setHours(0,0,0,0);
+        
+        let start = new Date(0);
+        let end = new Date();
+
+        if (filterType === 'today') {
+            start = new Date(today);
+            end = new Date(today);
+            end.setHours(23,59,59,999);
+        } else if (filterType === 'week') {
+            const day = today.getDay();
+            const diff = today.getDate() - day + (day === 0 ? -6 : 1); // get Monday
+            start = new Date(today.setDate(diff));
+            start.setHours(0,0,0,0);
+        } else if (filterType === 'month') {
+            start = new Date(today.getFullYear(), today.getMonth(), 1);
+        } else if (filterType === 'year') {
+            start = new Date(today.getFullYear(), 0, 1);
+        } else if (filterType === 'custom') {
+            const cs = document.getElementById('financeCustomStart').value;
+            const ce = document.getElementById('financeCustomEnd').value;
+            if (cs && ce) {
+                start = new Date(cs);
+                start.setHours(0,0,0,0);
+                end = new Date(ce);
+                end.setHours(23,59,59,999);
+            }
+        }
+
+        // Filter and transform payments
+        const filteredRev = [];
+        let totalRev = 0;
+        allPayments.forEach(p => {
+            const d = new Date(p.date);
+            if (d >= start && d <= end) {
+                totalRev += p.amount;
+                filteredRev.push({
+                    rawDate: d,
+                    Date: d.toLocaleDateString(),
+                    Description: `Player Payment - ${p.playerId}`,
+                    Category: p.paymentType,
+                    Type: 'Revenue',
+                    Amount: p.amount,
+                    id: p.id
+                });
+            }
+        });
+
+        // Filter and transform expenses
+        const filteredExp = [];
+        let totalExp = 0;
+        allExpenses.forEach(e => {
+            const d = new Date(e.date);
+            if (d >= start && d <= end) {
+                totalExp += e.amount;
+                filteredExp.push({
+                    rawDate: d,
+                    Date: d.toLocaleDateString(),
+                    Description: e.title,
+                    Category: e.category,
+                    Type: 'Expense',
+                    Amount: parseFloat(e.amount),
+                    id: e.id
+                });
+            }
+        });
+
+        revEl.textContent = `₹${totalRev.toFixed(2)}`;
+        expEl.textContent = `₹${totalExp.toFixed(2)}`;
+        
+        const profit = totalRev - totalExp;
+        profitEl.textContent = `₹${profit.toFixed(2)}`;
+        profitEl.style.color = profit >= 0 ? '#065f46' : '#991b1b';
+
+        // Combine and sort by newest
+        const combined = [...filteredRev, ...filteredExp].sort((a,b) => b.rawDate - a.rawDate);
+        currentFinanceData = combined.map(item => ({
+            Date: item.Date,
+            Type: item.Type,
+            Description: item.Description,
+            Category: item.Category,
+            Amount: item.Type === 'Expense' ? -item.Amount : item.Amount
+        }));
+
+        if (combined.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">No transactions found for this period.</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = combined.map(item => {
+            const isRev = item.Type === 'Revenue';
+            const badgeClass = isRev ? 'badge-success' : 'badge-danger';
+            const arrow = isRev ? '<i class="fa-solid fa-arrow-trend-up text-success"></i> ' : '<i class="fa-solid fa-arrow-trend-down text-danger"></i> ';
+            return `
+            <tr>
+                <td style="white-space:nowrap;font-size:0.85rem;">${item.Date}</td>
+                <td><strong>${item.Description}</strong></td>
+                <td><span class="badge ${badgeClass}">${item.Category}</span></td>
+                <td class="text-right" style="font-weight:600;">${arrow} ₹${item.Amount.toFixed(2)}</td>
+                <td class="text-center">
+                    ${!isRev ? `<button class="icon-btn text-danger delete-expense-btn" data-id="${item.id}" title="Delete Expense"><i class="fa-solid fa-trash"></i></button>` : `<span class="text-muted" style="font-size:0.8rem;">Auto</span>`}
+                </td>
+            </tr>`;
+        }).join('');
+
+        // Attach delete listeners
+        document.querySelectorAll('.delete-expense-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                if(confirm('Are you sure you want to delete this expense?')) {
+                    Database.deleteExpense(e.currentTarget.dataset.id);
+                    renderFinanceDashboard(filterType);
+                }
+            });
+        });
+    }
+
+    // Wire up all three (existing banner config at end)
+    BANNER_CONFIGS.forEach(attachAdvisor);
+    });
+})();

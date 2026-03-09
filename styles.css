@@ -577,3 +577,70 @@ footer {
         font-size: 1.25rem;
     }
 }
+
+/* Leaderboard on Landing Page */
+.tp-leaderboard-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    border-radius: 10px;
+    margin-bottom: 0.5rem;
+    background: var(--bg-light);
+    border: 1px solid var(--border);
+    transition: var(--transition);
+}
+.tp-leaderboard-row:hover { border-color: var(--primary); }
+.tp-rank-badge {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+    background: var(--border);
+    color: var(--text-muted);
+}
+.tp-rank-badge.rank-1 { background: linear-gradient(135deg,#FFD700,#FFA500); color: #333; }
+.tp-rank-badge.rank-2 { background: linear-gradient(135deg,#C0C0C0,#A8A8A8); color: #333; }
+.tp-rank-badge.rank-3 { background: linear-gradient(135deg,#CD7F32,#A0522D); color: #fff; }
+
+.tp-progress-bar-container {
+    background: var(--border);
+    border-radius: 999px;
+    height: 10px;
+    overflow: hidden;
+    margin-top: 4px;
+}
+.tp-progress-bar-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--primary), #ff6666);
+    transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tp-tab-pills {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.25rem;
+}
+.tp-tab-pill {
+    padding: 0.4rem 1rem;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    border: 1px solid var(--border);
+    background: var(--bg-light);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: var(--transition);
+}
+.tp-tab-pill.active, .tp-tab-pill:hover {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+}

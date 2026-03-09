@@ -7,6 +7,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="dashboard.css">
+    <!-- SheetJS for Excel Exports -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
     <div class="sidebar" id="sidebar">
@@ -36,6 +38,7 @@
             </a>
             <a href="#" class="nav-item" id="openDietPlansNav"><i class="fa-solid fa-bowl-food"></i> Diet Plans</a>
             <hr style="border-color: var(--border); margin: 0.5rem 0;">
+            <a href="#" class="nav-item" id="openFinanceNav"><i class="fa-solid fa-vault"></i> Finance & Analytics</a>
             <a href="#" class="nav-item" id="openTrainingMonitorNav"><i class="fa-solid fa-dumbbell"></i> Training Monitor</a>
             <a href="#" class="nav-item" id="openSkillEvalNav"><i class="fa-solid fa-star"></i> Skill Evaluation</a>
             <a href="#" class="nav-item" id="openReportsNav"><i class="fa-solid fa-chart-bar"></i> Progress Reports</a>
@@ -123,8 +126,17 @@
                 <div class="actions-grid">
                     <button class="action-btn" id="openScannerBtn"><i class="fa-solid fa-qrcode"></i> Scan QR</button>
                     <button class="action-btn" id="openAddMemberBtn"><i class="fa-solid fa-plus"></i> Add Member</button>
+                    <button class="action-btn" id="openAddExpenseBtn"><i class="fa-solid fa-file-invoice-dollar"></i> Add Expense</button>
                     <button class="action-btn" id="openNewEventBtn"><i class="fa-solid fa-calendar-plus"></i> New Event</button>
-                    <button class="action-btn" id="openAnnounceBtn"><i class="fa-solid fa-bullhorn"></i> Announce</button>
+                </div>
+            </div>
+            
+            <div class="quick-actions" style="margin-top:1.5rem;">
+                <h3 class="section-title">Data Export <span style="font-size:0.8rem;color:var(--text-muted);font-weight:normal;margin-left:0.5rem;">Download as Excel (.xlsx)</span></h3>
+                <div class="actions-grid" style="grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));">
+                    <button class="action-btn" id="exportAttendanceBtn" style="background:var(--success-light);color:var(--success);border-color:rgba(16,185,129,0.2);"><i class="fa-solid fa-file-excel"></i> Attendance</button>
+                    <button class="action-btn" id="exportMembersBtn" style="background:var(--primary-light);color:var(--primary);border-color:rgba(220,38,38,0.2);"><i class="fa-solid fa-file-excel"></i> Members</button>
+                    <button class="action-btn" id="exportFinancialsBtn" style="background:rgba(245,158,11,0.1);color:#d97706;border-color:rgba(245,158,11,0.2);"><i class="fa-solid fa-file-excel"></i> Financials</button>
                 </div>
             </div>
             
@@ -256,16 +268,6 @@
 
                 <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem;">
                     <div class="form-group" style="flex: 1; min-width: 150px; margin-bottom: 0;">
-                        <label for="newMemberPlan" style="display: block; font-weight: 500; margin-bottom: 0.5rem; font-size: 0.9rem;">Fees Plan</label>
-                        <select id="newMemberPlan" required style="width: 100%; padding: 0.875rem; border: 1px solid var(--border); border-radius: 12px; background: var(--surface-light); color: var(--text-dark); font-size: 1rem; appearance: none;">
-                            <option value="">Select Plan...</option>
-                            <option value="Monthly">Monthly</option>
-                            <option value="Quarterly">Quarterly</option>
-                            <option value="Half-Yearly">Half-Yearly</option>
-                            <option value="Yearly">Yearly</option>
-                        </select>
-                    </div>
-                    <div class="form-group" style="flex: 1; min-width: 150px; margin-bottom: 0;">
                         <label for="newMemberAddons" style="display: block; font-weight: 500; margin-bottom: 0.5rem; font-size: 0.9rem;">Extra Add-ons</label>
                         <input type="text" id="newMemberAddons" placeholder="e.g. Diet Plan, Locker" style="width: 100%; padding: 0.875rem; border: 1px solid var(--border); border-radius: 12px; background: var(--surface-light); color: var(--text-dark); font-size: 1rem;">
                     </div>
@@ -273,12 +275,12 @@
 
                 <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem;">
                     <div class="form-group" style="flex: 1; min-width: 120px; margin-bottom: 0;">
-                        <label style="display: block; font-weight: 500; margin-bottom: 0.5rem; font-size: 0.9rem;">Enrollment Fee (₹)</label>
-                        <input type="number" id="newMemberEnrollmentFee" readonly placeholder="Auto-fills" style="width: 100%; padding: 0.875rem; border: 1px solid var(--border); border-radius: 12px; background: var(--border); color: var(--text-dark); font-size: 1rem; cursor: not-allowed;">
+                        <label for="newMemberEnrollmentFee" style="display: block; font-weight: 500; margin-bottom: 0.5rem; font-size: 0.9rem;">Enrollment Fee (₹)</label>
+                        <input type="number" id="newMemberEnrollmentFee" placeholder="e.g. 1000" min="0" style="width: 100%; padding: 0.875rem; border: 1px solid var(--border); border-radius: 12px; background: var(--surface-light); color: var(--text-dark); font-size: 1rem;">
                     </div>
                     <div class="form-group" style="flex: 1; min-width: 120px; margin-bottom: 0;">
-                        <label style="display: block; font-weight: 500; margin-bottom: 0.5rem; font-size: 0.9rem;">Monthly Fee (₹)</label>
-                        <input type="number" id="newMemberMonthlyFee" readonly placeholder="Auto-fills" style="width: 100%; padding: 0.875rem; border: 1px solid var(--border); border-radius: 12px; background: var(--border); color: var(--text-dark); font-size: 1rem; cursor: not-allowed;">
+                        <label for="newMemberMonthlyFee" style="display: block; font-weight: 500; margin-bottom: 0.5rem; font-size: 0.9rem;">Monthly Fee (₹)</label>
+                        <input type="number" id="newMemberMonthlyFee" placeholder="e.g. 2000" min="0" style="width: 100%; padding: 0.875rem; border: 1px solid var(--border); border-radius: 12px; background: var(--surface-light); color: var(--text-dark); font-size: 1rem;">
                     </div>
                     <div class="form-group" style="flex: 1; min-width: 120px; margin-bottom: 0;">
                         <label for="newMemberDiscount" style="display: block; font-weight: 500; margin-bottom: 0.5rem; font-size: 0.9rem;">Discount (₹)</label>
@@ -773,6 +775,9 @@
                 <h4 id="adminProfileName" class="font-weight-bold" style="font-size: 1.25rem;">Player Name</h4>
                 <p id="adminProfileId" class="text-muted" style="margin-top: 5px;">CLUB-PLAYER-0000</p>
                 <p id="adminProfileMobile" class="text-muted" style="margin-top: 0;"><i class="fa-solid fa-phone" style="font-size: 0.8rem;"></i> <span id="adminProfilePhoneNum"></span></p>
+
+                <!-- Social Media Contact Buttons -->
+                <div id="adminSocialLinks" style="display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap;margin-bottom:0.5rem;"></div>
             </div>
 
             <div class="profile-details" style="background: var(--bg-light); padding: 1rem; border-radius: var(--radius); border: 1px solid var(--border);">
@@ -1301,6 +1306,14 @@
                         <input type="number" id="chalTarget" placeholder="e.g. 1000" min="1" required>
                     </div>
                 </div>
+                <div style="margin-bottom:1rem;">
+                    <div class="tp-input-group" style="position:relative;">
+                        <label style="display:flex;align-items:center;gap:0.4rem;">
+                            <i class="fa-solid fa-gift" style="color:#f59e0b;"></i> Reward (Optional)
+                        </label>
+                        <input type="text" id="chalReward" placeholder="e.g. Free T-shirt · Certificate of Excellence · Extra Session">
+                    </div>
+                </div>
                 <div id="chalFormMsg" style="display:none;margin-bottom:0.75rem;padding:0.75rem;border-radius:8px;font-size:0.875rem;text-align:center;"></div>
                 <button type="submit" class="btn btn-primary btn-full"><i class="fa-solid fa-plus"></i> Create Challenge</button>
             </form>
@@ -1345,5 +1358,147 @@
         </div>
     </div>
 
+    <!-- ===== FINANCE & ANALYTICS MODAL ===== -->
+    <div class="qr-modal" id="adminFinanceModal">
+        <div class="qr-modal-content" style="max-width: 900px; width: 95%;">
+            <span class="close-modal" id="closeAdminFinanceModal">&times;</span>
+            <h3 class="section-title text-center mt-0" style="display:flex;align-items:center;justify-content:center;gap:0.5rem;">
+                <i class="fa-solid fa-vault" style="color:var(--primary);"></i> Finance & Analytics
+            </h3>
+            <p class="text-center text-muted mb-3" style="font-size:0.88rem;">Track revenue, expenses, and overall club profitability.</p>
+
+            <!-- Time Filters -->
+            <div style="display:flex;gap:0.5rem;overflow-x:auto;padding-bottom:0.5rem;margin-bottom:1rem;border-bottom:1px solid var(--border);">
+                <button class="finance-filter-btn active" data-filter="today" style="padding:0.4rem 1rem;border:1px solid var(--primary);background:var(--primary);color:white;border-radius:20px;font-size:0.85rem;font-weight:600;cursor:pointer;white-space:nowrap;">Today</button>
+                <button class="finance-filter-btn" data-filter="week" style="padding:0.4rem 1rem;border:1px solid var(--border);background:var(--bg-light);color:var(--text-dark);border-radius:20px;font-size:0.85rem;font-weight:600;cursor:pointer;white-space:nowrap;">This Week</button>
+                <button class="finance-filter-btn" data-filter="month" style="padding:0.4rem 1rem;border:1px solid var(--border);background:var(--bg-light);color:var(--text-dark);border-radius:20px;font-size:0.85rem;font-weight:600;cursor:pointer;white-space:nowrap;">This Month</button>
+                <button class="finance-filter-btn" data-filter="year" style="padding:0.4rem 1rem;border:1px solid var(--border);background:var(--bg-light);color:var(--text-dark);border-radius:20px;font-size:0.85rem;font-weight:600;cursor:pointer;white-space:nowrap;">This Year</button>
+                <div style="display:flex;align-items:center;gap:0.4rem;margin-left:auto;">
+                    <input type="date" id="financeCustomStart" style="padding:0.3rem;border:1px solid var(--border);border-radius:6px;font-size:0.8rem;">
+                    <span class="text-muted">to</span>
+                    <input type="date" id="financeCustomEnd" style="padding:0.3rem;border:1px solid var(--border);border-radius:6px;font-size:0.8rem;">
+                    <button id="financeCustomApplyBtn" style="padding:0.35rem 0.8rem;background:var(--text-dark);color:white;border:none;border-radius:6px;font-size:0.8rem;cursor:pointer;">Apply</button>
+                </div>
+            </div>
+
+            <!-- Summary Cards -->
+            <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:1rem;margin-bottom:1.5rem;">
+                <!-- Revenue -->
+                <div style="background:var(--success-light);border:1px solid rgba(16,185,129,0.2);border-radius:12px;padding:1.25rem;">
+                    <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
+                        <div style="width:36px;height:36px;border-radius:50%;background:rgba(16,185,129,0.15);display:flex;align-items:center;justify-content:center;color:#059669;">
+                            <i class="fa-solid fa-arrow-trend-up"></i>
+                        </div>
+                        <h4 style="margin:0;font-size:0.9rem;color:#059669;">Total Revenue</h4>
+                    </div>
+                    <h2 style="margin:0;font-size:1.8rem;color:#065f46;" id="financeSummaryRev">₹0</h2>
+                </div>
+                <!-- Expenses -->
+                <div style="background:rgba(239,68,68,0.05);border:1px solid rgba(239,68,68,0.2);border-radius:12px;padding:1.25rem;">
+                    <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
+                        <div style="width:36px;height:36px;border-radius:50%;background:rgba(239,68,68,0.15);display:flex;align-items:center;justify-content:center;color:#dc2626;">
+                            <i class="fa-solid fa-arrow-trend-down"></i>
+                        </div>
+                        <h4 style="margin:0;font-size:0.9rem;color:#dc2626;">Total Expenses</h4>
+                    </div>
+                    <h2 style="margin:0;font-size:1.8rem;color:#991b1b;" id="financeSummaryExp">₹0</h2>
+                </div>
+                <!-- Profit -->
+                <div style="background:var(--primary-light);border:1px solid rgba(220,38,38,0.2);border-radius:12px;padding:1.25rem;">
+                    <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
+                        <div style="width:36px;height:36px;border-radius:50%;background:rgba(220,38,38,0.15);display:flex;align-items:center;justify-content:center;color:var(--primary);">
+                            <i class="fa-solid fa-scale-balanced"></i>
+                        </div>
+                        <h4 style="margin:0;font-size:0.9rem;color:var(--primary);">Net Profit</h4>
+                    </div>
+                    <h2 style="margin:0;font-size:1.8rem;color:#991b1b;" id="financeSummaryProfit">₹0</h2>
+                </div>
+            </div>
+
+            <!-- Table -->
+            <div class="table-responsive" style="max-height: 350px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px;">
+                <table class="table" style="margin:0;">
+                    <thead style="position:sticky;top:0;background:var(--bg-light);z-index:1;">
+                        <tr>
+                            <th>Date</th>
+                            <th>Description</th>
+                            <th>Category / Type</th>
+                            <th class="text-right">Amount</th>
+                            <th class="text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="financeDataTableBody">
+                        <!-- Populated via JS -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div style="text-align:right;margin-top:1rem;">
+                <button class="btn btn-primary" id="financeModalExportBtn"><i class="fa-solid fa-file-excel"></i> Export Filtered Data</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== ADD EXPENSE MODAL ===== -->
+    <div class="qr-modal" id="adminAddExpenseModal">
+        <div class="qr-modal-content" style="max-width: 500px; width: 95%;">
+            <span class="close-modal" id="closeAdminAddExpenseModal">&times;</span>
+            <h3 class="section-title text-center mt-0" style="display:flex;align-items:center;justify-content:center;gap:0.5rem;">
+                <i class="fa-solid fa-file-invoice-dollar" style="color:var(--primary);"></i> Add Expense
+            </h3>
+            <p class="text-center text-muted mb-3" style="font-size:0.88rem;">Record a new club expense or outgoing payment.</p>
+
+            <form id="adminAddExpenseForm" style="background:var(--bg-light);border:1px solid var(--border);border-radius:12px;padding:1.25rem;margin-bottom:1rem;">
+                <div class="tp-input-group" style="margin-bottom:1rem;">
+                    <label>Expense Title / Description</label>
+                    <input type="text" id="expenseTitle" placeholder="e.g. Electricity Bill, New Gloves" required style="width:100%;padding:0.75rem;border:1px solid var(--border);border-radius:8px;">
+                </div>
+                <div style="display:flex;gap:1rem;margin-bottom:1rem;">
+                    <div class="tp-input-group" style="flex:1;">
+                        <label>Amount (₹)</label>
+                        <input type="number" id="expenseAmount" placeholder="e.g. 1500" required min="1" step="any" style="width:100%;padding:0.75rem;border:1px solid var(--border);border-radius:8px;">
+                    </div>
+                    <div class="tp-input-group" style="flex:1;">
+                        <label>Date</label>
+                        <input type="date" id="expenseDate" required style="width:100%;padding:0.75rem;border:1px solid var(--border);border-radius:8px;">
+                    </div>
+                </div>
+                <div class="tp-input-group" style="margin-bottom:1rem;">
+                    <label>Category</label>
+                    <select id="expenseCategory" required style="width:100%;padding:0.75rem;border:1px solid var(--border);border-radius:8px;background:var(--surface-light);color:var(--text-dark);">
+                        <option value="">Select Category...</option>
+                        <option value="Rent/Mortgage">Rent/Mortgage</option>
+                        <option value="Utilities">Utilities (Water, Electricity)</option>
+                        <option value="Equipment">Equipment & Gear</option>
+                        <option value="Staff/Wages">Staff / Wages</option>
+                        <option value="Marketing">Marketing / Ads</option>
+                        <option value="Maintenance">Maintenance / Repairs</option>
+                        <option value="Other">Other Miscellaneous</option>
+                    </select>
+                </div>
+                <div class="tp-input-group" style="margin-bottom:1.5rem;">
+                    <label>Notes (Optional)</label>
+                    <textarea id="expenseNotes" rows="2" placeholder="Additional details..." style="width:100%;padding:0.75rem;border:1px solid var(--border);border-radius:8px;resize:vertical;"></textarea>
+                </div>
+                
+                <div id="expenseFormMsg" style="display:none;margin-bottom:0.75rem;padding:0.75rem;border-radius:8px;font-size:0.875rem;text-align:center;"></div>
+                <button type="submit" class="btn btn-primary btn-full"><i class="fa-solid fa-check"></i> Save Expense</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Error Catcher Script -->
+    <script>
+        window.addEventListener('error', function(e) {
+            let errDiv = document.getElementById('debug-error-banner');
+            if (!errDiv) {
+                errDiv = document.createElement('div');
+                errDiv.id = 'debug-error-banner';
+                errDiv.style.cssText = 'position:fixed;top:0;left:0;width:100%;background:red;color:white;z-index:999999;padding:10px;font-family:monospace;font-size:14px;';
+                document.body.prepend(errDiv);
+            }
+            errDiv.innerHTML += `<b>JS Error:</b> ${e.message} at ${e.filename}:${e.lineno}<br>`;
+        });
+    </script>
 </body>
 </html>

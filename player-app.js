@@ -347,6 +347,14 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
+        // --- Pre-fill saved social links ---
+        const wEl = document.getElementById('playerWhatsapp');
+        const igEl = document.getElementById('playerInstagram');
+        const fbEl = document.getElementById('playerFacebook');
+        if (wEl) wEl.value = freshPlayer.whatsapp || '';
+        if (igEl) igEl.value = freshPlayer.instagram || '';
+        if (fbEl) fbEl.value = freshPlayer.facebook || '';
+
         profileModal.classList.add('show');
 
         // --- ID Card Download (Pure Canvas — no html2canvas, no CORS) ---
@@ -610,6 +618,33 @@ document.addEventListener('DOMContentLoaded', () => {
         profileModal.addEventListener('click', (e) => {
             if (e.target === profileModal) {
                 profileModal.classList.remove('show');
+            }
+        });
+    }
+
+    // --- Save Social Links ---
+    const saveSocialBtn = document.getElementById('saveSocialLinksBtn');
+    const socialSaveMsg = document.getElementById('socialSaveMsg');
+    if (saveSocialBtn) {
+        saveSocialBtn.addEventListener('click', () => {
+            const freshPlayer = Database.getPlayerById(currentPlayer.id) || currentPlayer;
+            const whatsapp  = (document.getElementById('playerWhatsapp')?.value || '').trim();
+            const instagram = (document.getElementById('playerInstagram')?.value || '').trim();
+            const facebook  = (document.getElementById('playerFacebook')?.value || '').trim();
+
+            // Build updated player object and persist
+            const updated = { ...freshPlayer, whatsapp, instagram, facebook };
+            const players = Database.getPlayers().map(p => p.id === freshPlayer.id ? updated : p);
+            localStorage.setItem('players', JSON.stringify(players));
+
+            // Show success msg
+            if (socialSaveMsg) {
+                socialSaveMsg.textContent = '✅ Social links saved!';
+                socialSaveMsg.style.background = 'rgba(16,185,129,0.1)';
+                socialSaveMsg.style.color = '#059669';
+                socialSaveMsg.style.border = '1px solid #059669';
+                socialSaveMsg.style.display = 'block';
+                setTimeout(() => { socialSaveMsg.style.display = 'none'; }, 3000);
             }
         });
     }
@@ -1197,7 +1232,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    if (dietPlansModal && openDietPlanNav && closePlayerDietPlanModal) {
+    if (playerDietPlanModal && openDietPlanNav && closePlayerDietPlanModal) {
         openDietPlanNav.addEventListener('click', (e) => {
             e.preventDefault();
             playerDietFilter = 'All';
@@ -1512,23 +1547,44 @@ document.addEventListener('DOMContentLoaded', () => {
             if (challenges.length === 0) {
                 chalEl.innerHTML = '<p class="text-muted" style="font-size:0.88rem;">No active challenges yet. Ask your coach!</p>';
             } else {
+                // Safe completion check — completions may be strings or {playerId} objects
+                const isCompleted = (c) => Database._isCompleted
+                    ? Database._isCompleted(c, currentPlayer.id)
+                    : c.completions.some(e => (typeof e === 'string' ? e : e.playerId) === currentPlayer.id);
+
                 chalEl.innerHTML = challenges.map(c => {
-                    const isCompleted = c.completions.includes(currentPlayer.id);
+                    const done = isCompleted(c);
                     let current = c.type === 'punches' ? totalPunches
                         : c.type === 'kicks' ? totalKicks
                         : c.type === 'conditioning' ? totalCond
                         : c.type === 'streak' ? maxStreak : 0;
                     const pct = Math.min(100, Math.round((current / c.targetValue) * 100));
+
+                    const rewardHtml = c.reward
+                        ? `<div style="margin-top:0.5rem;display:flex;align-items:center;gap:0.4rem;padding:0.35rem 0.6rem;background:rgba(245,158,11,0.08);border-radius:6px;border-left:3px solid #f59e0b;">
+                            <i class="fa-solid fa-gift" style="color:#f59e0b;font-size:0.85rem;"></i>
+                            <span style="font-size:0.82rem;color:#b45309;font-weight:600;">Reward: ${c.reward}</span>
+                          </div>`
+                        : '';
+
+                    const completedBanner = done
+                        ? `<div style="margin-top:0.5rem;padding:0.4rem 0.7rem;background:rgba(16,185,129,0.1);border-radius:6px;border-left:3px solid #059669;font-size:0.82rem;color:#059669;font-weight:600;">
+                            🎉 You completed this challenge!${c.reward ? ' Reward: ' + c.reward : ''}
+                          </div>`
+                        : '';
+
                     return `<div style="background:var(--bg-light);border:1px solid var(--border);border-radius:10px;padding:0.9rem;margin-bottom:0.6rem;">
                         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.4rem;">
-                            <span style="font-weight:700;font-size:0.9rem;">${isCompleted ? '🏅 ' : ''}${c.title}</span>
-                            <span class="badge ${isCompleted ? 'badge-success' : 'badge-secondary'}" style="font-size:0.75rem;">${isCompleted ? 'Completed' : pct + '%'}</span>
+                            <span style="font-weight:700;font-size:0.9rem;">${done ? '🏅 ' : ''}${c.title}</span>
+                            <span class="badge ${done ? 'badge-success' : 'badge-secondary'}" style="font-size:0.75rem;">${done ? 'Completed!' : pct + '%'}</span>
                         </div>
                         <p style="font-size:0.8rem;color:var(--text-muted);margin:0 0 0.5rem;">${c.description}</p>
                         <div class="tp-progress-bar-container">
-                            <div class="tp-progress-bar-fill" style="width:${pct}%;"></div>
+                            <div class="tp-progress-bar-fill" style="width:${pct}%;${done ? 'background:linear-gradient(90deg,#059669,#10b981);' : ''}"></div>
                         </div>
                         <small class="text-muted" style="font-size:0.75rem;">${Math.min(current, c.targetValue).toLocaleString()} / ${c.targetValue.toLocaleString()}</small>
+                        ${!done ? rewardHtml : ''}
+                        ${completedBanner}
                     </div>`;
                 }).join('');
             }
@@ -1567,6 +1623,95 @@ document.addEventListener('DOMContentLoaded', () => {
     if (recordsNav) recordsNav.addEventListener('click', e => { e.preventDefault(); openPersonalRecords(); });
     if (closeRecords) closeRecords.addEventListener('click', () => closeModal('personalRecordsModal'));
     if (recordsModal) recordsModal.addEventListener('click', e => { if (e.target === recordsModal) closeModal('personalRecordsModal'); });
+
+    // ===== DEDICATED CHALLENGES NAV =====
+    const chalPlayerNav    = document.getElementById('openChallengesPlayerNav');
+    const chalPlayerModal  = document.getElementById('playerChallengesModal');
+    const closeChalPlayer  = document.getElementById('closePlayerChallengesModal');
+    const chalStandaloneEl = document.getElementById('playerChallengesStandaloneContainer');
+
+    const renderStandaloneChallenges = () => {
+        if (!chalStandaloneEl) return;
+        const logs = Database.getPlayerTrainingLogs(currentPlayer.id);
+
+        const totalPunches = logs.reduce((s, l) => s + l.punches.jab + l.punches.cross + l.punches.hook + l.punches.uppercut, 0);
+        const totalKicks   = logs.reduce((s, l) => s + l.kicks.front + l.kicks.roundhouse + l.kicks.side + l.kicks.low, 0);
+        const totalCond    = logs.reduce((s, l) => s + l.conditioning.pushups + l.conditioning.squats + l.conditioning.situps, 0);
+
+        // Streak calc
+        let streak = 0, maxStreak = 0, prevDate = null;
+        const sortedDates = [...new Set(logs.map(l => l.date))].sort();
+        sortedDates.forEach(d => {
+            if (!prevDate) { streak = 1; }
+            else { const diff = (new Date(d) - new Date(prevDate)) / 86400000; streak = diff === 1 ? streak + 1 : 1; }
+            maxStreak = Math.max(maxStreak, streak);
+            prevDate = d;
+        });
+
+        const challenges = Database.getTrainingChallenges();
+        if (challenges.length === 0) {
+            chalStandaloneEl.innerHTML = `
+                <div style="text-align:center;padding:2rem;">
+                    <i class="fa-solid fa-fire" style="font-size:3rem;color:var(--border);margin-bottom:1rem;"></i>
+                    <p style="color:var(--text-muted);font-size:0.9rem;">No active challenges yet.<br>Ask your coach to create some!</p>
+                </div>`;
+            return;
+        }
+
+        const isCompleted = (c) => Database._isCompleted
+            ? Database._isCompleted(c, currentPlayer.id)
+            : c.completions.some(e => (typeof e === 'string' ? e : e.playerId) === currentPlayer.id);
+
+        chalStandaloneEl.innerHTML = challenges.map(c => {
+            const done = isCompleted(c);
+            let current = c.type === 'punches' ? totalPunches
+                : c.type === 'kicks'        ? totalKicks
+                : c.type === 'conditioning' ? totalCond
+                : c.type === 'streak'       ? maxStreak : 0;
+            const pct = Math.min(100, Math.round((current / c.targetValue) * 100));
+
+            const typeLabel = c.type === 'punches' ? '🥊 Punches' : c.type === 'kicks' ? '🦵 Kicks'
+                : c.type === 'conditioning' ? '💪 Conditioning' : '🔥 Streak (Days)';
+
+            const rewardHtml = c.reward
+                ? `<div style="margin-top:0.5rem;display:flex;align-items:center;gap:0.4rem;padding:0.35rem 0.6rem;background:rgba(245,158,11,0.08);border-radius:6px;border-left:3px solid #f59e0b;">
+                    <i class="fa-solid fa-gift" style="color:#f59e0b;font-size:0.85rem;"></i>
+                    <span style="font-size:0.82rem;color:#b45309;font-weight:600;">Reward: ${c.reward}</span>
+                  </div>`
+                : '';
+
+            const completedBanner = done
+                ? `<div style="margin-top:0.5rem;padding:0.4rem 0.7rem;background:rgba(16,185,129,0.1);border-radius:6px;border-left:3px solid #059669;font-size:0.82rem;color:#059669;font-weight:600;">
+                    🎉 You completed this challenge!${c.reward ? ' Reward: ' + c.reward : ''}
+                  </div>`
+                : '';
+
+            return `<div style="background:var(--bg-light);border:1px solid ${done ? '#d1fae5' : 'var(--border)'};border-radius:12px;padding:1rem;margin-bottom:0.75rem;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.3rem;">
+                    <span style="font-weight:700;font-size:0.95rem;">${done ? '🏅 ' : '🎯 '}${c.title}</span>
+                    <span class="badge ${done ? 'badge-success' : 'badge-secondary'}" style="font-size:0.75rem;flex-shrink:0;">${done ? 'Completed!' : pct + '%'}</span>
+                </div>
+                <span style="font-size:0.76rem;color:var(--text-muted);font-weight:600;">${typeLabel}</span>
+                <p style="font-size:0.82rem;color:var(--text-muted);margin:0.35rem 0 0.5rem;">${c.description}</p>
+                <div class="tp-progress-bar-container">
+                    <div class="tp-progress-bar-fill" style="width:${pct}%;${done ? 'background:linear-gradient(90deg,#059669,#10b981);' : ''}"></div>
+                </div>
+                <small class="text-muted" style="font-size:0.75rem;">${Math.min(current, c.targetValue).toLocaleString()} / ${c.targetValue.toLocaleString()}</small>
+                ${!done ? rewardHtml : ''}
+                ${completedBanner}
+            </div>`;
+        }).join('');
+    };
+
+    if (chalPlayerNav) {
+        chalPlayerNav.addEventListener('click', e => {
+            e.preventDefault();
+            renderStandaloneChallenges();
+            openModal('playerChallengesModal');
+        });
+    }
+    if (closeChalPlayer) closeChalPlayer.addEventListener('click', () => closeModal('playerChallengesModal'));
+    if (chalPlayerModal) chalPlayerModal.addEventListener('click', e => { if (e.target === chalPlayerModal) closeModal('playerChallengesModal'); });
 });
 
 

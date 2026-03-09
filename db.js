@@ -620,7 +620,7 @@ class Database {
         return JSON.parse(localStorage.getItem('trainingChallenges')) || [];
     }
 
-    static addTrainingChallenge(title, description, targetValue, type) {
+    static addTrainingChallenge(title, description, targetValue, type, reward = '') {
         const challenges = this.getTrainingChallenges();
         const newChallenge = {
             id: `CHAL-${Date.now()}`,
@@ -628,12 +628,22 @@ class Database {
             description,
             targetValue: parseInt(targetValue) || 0,
             type, // 'punches' | 'kicks' | 'conditioning' | 'streak'
+            reward, // e.g. "Free t-shirt", "Certificate of Excellence"
             completions: [], // array of playerId strings
             createdAt: new Date().toISOString()
         };
         challenges.unshift(newChallenge);
         localStorage.setItem('trainingChallenges', JSON.stringify(challenges));
         return { success: true, challenge: newChallenge };
+    }
+
+    static updateChallengeReward(challengeId, reward) {
+        const challenges = this.getTrainingChallenges();
+        const ch = challenges.find(c => c.id === challengeId);
+        if (!ch) return false;
+        ch.reward = reward;
+        localStorage.setItem('trainingChallenges', JSON.stringify(challenges));
+        return true;
     }
 
     static deleteTrainingChallenge(id) {
@@ -647,11 +657,18 @@ class Database {
         return false;
     }
 
+    // Helper: check if a player completed a challenge (completions may be strings or objects)
+    static _isCompleted(challenge, playerId) {
+        return challenge.completions.some(c =>
+            typeof c === 'string' ? c === playerId : c.playerId === playerId
+        );
+    }
+
     static completeChallengeForPlayer(challengeId, playerId) {
         const challenges = this.getTrainingChallenges();
         const challenge = challenges.find(c => c.id === challengeId);
         if (!challenge) return false;
-        if (!challenge.completions.includes(playerId)) {
+        if (!this._isCompleted(challenge, playerId)) {
             challenge.completions.push(playerId);
             localStorage.setItem('trainingChallenges', JSON.stringify(challenges));
         }
@@ -659,8 +676,9 @@ class Database {
     }
 
     static getCompletedChallenges(playerId) {
-        return this.getTrainingChallenges().filter(c => c.completions.includes(playerId));
+        return this.getTrainingChallenges().filter(c => this._isCompleted(c, playerId));
     }
+
 
     // --- Training Notifications ---
     static getTrainingNotifications() {
@@ -698,6 +716,38 @@ class Database {
             if (playerBatch && n.audience === playerBatch) return true;
             return false;
         });
+    }
+
+    // --- Expenses Tracker ---
+    static getExpenses() {
+        return JSON.parse(localStorage.getItem('expenses')) || [];
+    }
+
+    static addExpense(title, amount, category, date, notes) {
+        const expenses = this.getExpenses();
+        const newExpense = {
+            id: `EXP-${Date.now()}`,
+            title,
+            amount: parseFloat(amount) || 0,
+            category,
+            date,
+            notes,
+            createdAt: new Date().toISOString()
+        };
+        expenses.unshift(newExpense); // newest first
+        localStorage.setItem('expenses', JSON.stringify(expenses));
+        return { success: true, expense: newExpense };
+    }
+
+    static deleteExpense(id) {
+        let expenses = this.getExpenses();
+        const before = expenses.length;
+        expenses = expenses.filter(e => e.id !== id);
+        if (expenses.length !== before) {
+            localStorage.setItem('expenses', JSON.stringify(expenses));
+            return true;
+        }
+        return false;
     }
 }
 

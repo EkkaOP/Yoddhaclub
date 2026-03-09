@@ -31,6 +31,7 @@
             <a href="#" class="nav-item" id="openTrainingLogNav"><i class="fa-solid fa-dumbbell"></i> Training Log</a>
             <a href="#" class="nav-item" id="openProgressDashNav"><i class="fa-solid fa-chart-line"></i> My Progress</a>
             <a href="#" class="nav-item" id="openPersonalRecordsNav"><i class="fa-solid fa-medal"></i> My Records</a>
+            <a href="#" class="nav-item" id="openChallengesPlayerNav"><i class="fa-solid fa-fire"></i> Challenges</a>
         </nav>
         <div class="sidebar-footer">
             <a href="index.html" class="nav-item text-danger"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</a>
@@ -221,6 +222,37 @@
             <div style="display: flex; gap: 0.75rem; margin-top: 1rem;">
                 <button id="downloadIdCardBtn" class="btn btn-primary btn-full" style="flex:1; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
                     <i class="fa-solid fa-id-card"></i> Download ID Card
+                </button>
+            </div>
+
+            <!-- Social Media Links Section -->
+            <div style="margin-top:1.25rem;background:var(--bg-light);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;">
+                <h5 style="margin:0 0 0.75rem;font-size:0.95rem;font-weight:700;color:var(--text-dark);display:flex;align-items:center;gap:0.5rem;">
+                    <i class="fa-solid fa-share-nodes" style="color:var(--primary);"></i> My Social Links
+                </h5>
+                <p style="font-size:0.8rem;color:var(--text-muted);margin:0 0 0.75rem;">Your coach can use these to contact you.</p>
+
+                <div style="margin-bottom:0.65rem;">
+                    <label style="display:flex;align-items:center;gap:0.4rem;font-size:0.8rem;font-weight:600;color:#25D366;margin-bottom:0.3rem;">
+                        <i class="fa-brands fa-whatsapp"></i> WhatsApp Number
+                    </label>
+                    <input type="tel" id="playerWhatsapp" placeholder="e.g. 9876543210" style="width:100%;padding:0.6rem 0.75rem;border:1px solid var(--border);border-radius:8px;background:var(--surface-light);color:var(--text-dark);font-size:0.9rem;">
+                </div>
+                <div style="margin-bottom:0.65rem;">
+                    <label style="display:flex;align-items:center;gap:0.4rem;font-size:0.8rem;font-weight:600;color:#E1306C;margin-bottom:0.3rem;">
+                        <i class="fa-brands fa-instagram"></i> Instagram Username / URL
+                    </label>
+                    <input type="text" id="playerInstagram" placeholder="e.g. @yourhandle" style="width:100%;padding:0.6rem 0.75rem;border:1px solid var(--border);border-radius:8px;background:var(--surface-light);color:var(--text-dark);font-size:0.9rem;">
+                </div>
+                <div style="margin-bottom:1rem;">
+                    <label style="display:flex;align-items:center;gap:0.4rem;font-size:0.8rem;font-weight:600;color:#1877F2;margin-bottom:0.3rem;">
+                        <i class="fa-brands fa-facebook"></i> Facebook Profile URL
+                    </label>
+                    <input type="text" id="playerFacebook" placeholder="e.g. facebook.com/yourname" style="width:100%;padding:0.6rem 0.75rem;border:1px solid var(--border);border-radius:8px;background:var(--surface-light);color:var(--text-dark);font-size:0.9rem;">
+                </div>
+                <div id="socialSaveMsg" style="display:none;margin-bottom:0.5rem;padding:0.6rem;border-radius:8px;font-size:0.82rem;text-align:center;"></div>
+                <button id="saveSocialLinksBtn" class="btn btn-primary btn-full">
+                    <i class="fa-solid fa-floppy-disk"></i> Save Social Links
                 </button>
             </div>
         </div>
@@ -453,6 +485,18 @@
             <i class="fa-solid fa-bell" style="color:var(--primary);"></i> Training Alerts
         </h3>
         <div id="playerTrainingNotifList" style="max-height:500px;overflow-y:auto;"></div>
+    </div>
+</div>
+
+<!-- ===== PLAYER CHALLENGES MODAL ===== -->
+<div class="qr-modal" id="playerChallengesModal">
+    <div class="qr-modal-content" style="max-width: 680px; width: 95%;">
+        <span class="close-modal" id="closePlayerChallengesModal">&times;</span>
+        <h3 class="section-title text-center mt-0" style="display:flex;align-items:center;justify-content:center;gap:0.5rem;">
+            <i class="fa-solid fa-fire" style="color:var(--primary);"></i> Active Challenges
+        </h3>
+        <p class="text-center text-muted mb-3" style="font-size:0.88rem;">Complete challenges to earn badges and rewards from your coach!</p>
+        <div id="playerChallengesStandaloneContainer" style="max-height:520px;overflow-y:auto;"></div>
     </div>
 </div>
 
