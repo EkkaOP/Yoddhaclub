@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yoddha Club Login</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="login.css">
+</head>
+<body>
+    <div class="theme-toggle">
+        <button id="themeToggleBtn"><i class="fa-solid fa-moon"></i></button>
+    </div>
+
+    <div class="login-container">
+        <!-- Header -->
+        <header class="login-header">
+            <div class="logo">
+                <img src="logo.png" alt="Yoddha Club Logo" class="club-logo">
+            </div>
+            <h1>Yoddha Club Login</h1>
+            <p>Select your role to continue</p>
+        </header>
+
+        <!-- Role Selection -->
+        <div class="role-selection">
+            <button class="role-btn active" data-role="player">
+                <i class="fa-solid fa-user"></i>
+                <span>Player</span>
+            </button>
+            <button class="role-btn" data-role="admin">
+                <i class="fa-solid fa-user-shield"></i>
+                <span>Admin</span>
+            </button>
+        </div>
+
+        <!-- Error Message Container-->
+        <div id="errorMessage" class="error-message"></div>
+
+        <!-- Login Form -->
+        <form id="loginForm" class="login-form">
+            <div class="form-group">
+                <label for="username">Email / Username</label>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-envelope icon"></i>
+                    <input type="text" id="username" placeholder="Enter your email or username" required>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password</label>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-lock icon"></i>
+                    <input type="password" id="password" placeholder="Enter your password" required>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <a href="#" class="forgot-password">Forgot Password?</a>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block">Login Now</button>
+            
+            <div id="signupWrapper" class="signup-wrapper text-center mt-3">
+                <p>New to the club? <a href="#" id="showSignupLink" class="signup-link">Sign Up</a></p>
+            </div>
+        </form>
+
+        <!-- Sign Up Form (Hidden by Default) -->
+        <form id="signupForm" class="login-form" style="display: none; height: 60vh; overflow-y: auto; padding-right: 5px;">
+            <div class="form-group">
+                <label for="signupName">Full Name</label>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-user icon"></i>
+                    <input type="text" id="signupName" placeholder="Enter your full name" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="signupFatherName">Father's Name</label>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-user-tie icon"></i>
+                    <input type="text" id="signupFatherName" placeholder="Enter father's name" required>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                <div class="form-group" style="flex: 1; min-width: 150px;">
+                    <label for="signupMobile">Mobile No.</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-phone icon"></i>
+                        <input type="tel" id="signupMobile" placeholder="Phone number" required>
+                    </div>
+                </div>
+                <div class="form-group" style="flex: 1; min-width: 150px;">
+                    <label for="signupDob">Date of Birth</label>
+                    <div class="input-wrapper">
+                        <input type="date" id="signupDob" required style="padding-left: 1rem;">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="signupGender">Gender</label>
+                <select id="signupGender" required style="width: 100%; padding: 0.875rem; border: 1px solid var(--border); border-radius: 12px; background: var(--surface-light); color: var(--text-dark); font-size: 1rem; appearance: none;">
+                    <option value="">Select Gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                <div class="form-group" style="flex: 1; min-width: 150px;">
+                    <label for="signupPlan">Plan</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-medal icon"></i>
+                        <input type="text" id="signupPlan" placeholder="e.g. Basic/Premium">
+                    </div>
+                </div>
+                <div class="form-group" style="flex: 1; min-width: 150px;">
+                    <label for="signupBatch">Batch</label>
+                    <select id="signupBatch" required style="width: 100%; padding: 0.875rem; border: 1px solid var(--border); border-radius: 12px; background: var(--surface-light); color: var(--text-dark); font-size: 1rem; appearance: none;">
+                        <option value="">Select Batch...</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="signupPdf">Supporting Document (PDF)</label>
+                <input type="file" id="signupPdf" accept=".pdf" style="width: 100%; padding: 0.875rem; border: 1px solid var(--border); border-radius: 12px; background: white; color: var(--text-dark); font-size: 1rem;">
+            </div>
+
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                <div class="form-group" style="flex: 1; min-width: 150px;">
+                    <label for="signupPassword">Password</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-lock icon"></i>
+                        <input type="password" id="signupPassword" placeholder="Create password" required>
+                    </div>
+                </div>
+                <div class="form-group" style="flex: 1; min-width: 150px;">
+                    <label for="signupConfirmPassword">Confirm Password</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-lock icon"></i>
+                        <input type="password" id="signupConfirmPassword" placeholder="Confirm password" required>
+                    </div>
+                </div>
+            </div>
+
+            <div id="signupError" class="error-message"></div>
+            <div id="signupSuccess" class="success-message text-success p-2 mb-3 bg-success-light rounded" style="display: none; text-align: center; font-weight: 500;">
+                Registration successful! Pending admin approval.
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block">Complete Registration</button>
+            <div class="text-center mt-3">
+                <a href="#" id="backToLoginLink" class="text-muted" style="text-decoration: none; font-size: 0.9rem;">&larr; Back to Login</a>
+            </div>
+        </form>
+    </div>
+
+    <script src="db.js"></script>
+    <script src="login.js"></script>
+</body>
+</html>

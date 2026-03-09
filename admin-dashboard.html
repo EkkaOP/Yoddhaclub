@@ -1,0 +1,1349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Yoddha Club</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <img src="logo.png" alt="Yoddha Club Logo" class="club-logo">
+                <span>Yoddha Admin</span>
+            </div>
+            <button id="closeSidebar" class="icon-btn d-md-none"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="#" class="nav-item active"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+            <a href="#" class="nav-item" id="openScannerNav"><i class="fa-solid fa-qrcode"></i> Scan Attendance</a>
+            <a href="#" class="nav-item" id="openAddMemberNav"><i class="fa-solid fa-user-plus"></i> Add Member</a>
+            <a href="#" class="nav-item" id="openManageMembersNav"><i class="fa-solid fa-users"></i> Manage Members</a>
+            <a href="#" class="nav-item" id="openManageCoachesNav"><i class="fa-solid fa-dumbbell"></i> Manage Coaches</a>
+            <a href="#" class="nav-item" id="openManageBannersNav"><i class="fa-regular fa-images"></i> Manage Banners</a>
+            <a href="#" class="nav-item" id="openManageAnnouncementsNav"><i class="fa-solid fa-bullhorn"></i> Announcements</a>
+            <a href="#" class="nav-item" id="openManageBatchesNav"><i class="fa-solid fa-clock"></i> Manage Batches</a>
+            <a href="#" class="nav-item" id="openEnquiriesNav"><i class="fa-solid fa-user-clock"></i> Enquiries</a>
+            <a href="#" class="nav-item" id="openManageEventsNav"><i class="fa-regular fa-calendar"></i> Events</a>
+            <a href="#" class="nav-item" id="openManageTasksNav"><i class="fa-solid fa-list-check"></i> Assign Tasks</a>
+            <a href="#" class="nav-item" id="openFeeManagementNav"><i class="fa-solid fa-hand-holding-dollar"></i> Fee Management</a>
+            <a href="#" class="nav-item" id="openLeaveRequestsNav" style="position:relative;">
+                <i class="fa-solid fa-calendar-minus"></i> Leave Requests
+                <span id="leaveCountBadge" style="display:none;background:var(--primary);color:#fff;font-size:0.7rem;font-weight:700;border-radius:50%;width:18px;height:18px;display:none;align-items:center;justify-content:center;position:absolute;right:12px;top:50%;transform:translateY(-50%);" id="leaveCountBadge">0</span>
+            </a>
+            <a href="#" class="nav-item" id="openDietPlansNav"><i class="fa-solid fa-bowl-food"></i> Diet Plans</a>
+            <hr style="border-color: var(--border); margin: 0.5rem 0;">
+            <a href="#" class="nav-item" id="openTrainingMonitorNav"><i class="fa-solid fa-dumbbell"></i> Training Monitor</a>
+            <a href="#" class="nav-item" id="openSkillEvalNav"><i class="fa-solid fa-star"></i> Skill Evaluation</a>
+            <a href="#" class="nav-item" id="openReportsNav"><i class="fa-solid fa-chart-bar"></i> Progress Reports</a>
+            <a href="#" class="nav-item" id="openLeaderboardNav"><i class="fa-solid fa-trophy"></i> Leaderboard</a>
+            <a href="#" class="nav-item" id="openChallengesNav"><i class="fa-solid fa-fire"></i> Challenges</a>
+            <a href="#" class="nav-item" id="openTrainingNotifNav"><i class="fa-solid fa-bell"></i> Training Alerts</a>
+        </nav>
+        <div class="sidebar-footer">
+            <a href="index.html" class="nav-item text-danger"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</a>
+        </div>
+    </div>
+
+    <main class="main-content">
+        <header class="top-header">
+            <button id="openSidebar" class="icon-btn d-md-none"><i class="fa-solid fa-bars"></i></button>
+            <h2 class="page-title">Dashboard</h2>
+            <div class="header-actions">
+                <button id="themeToggleBtn" class="icon-btn theme-btn"><i class="fa-solid fa-moon"></i></button>
+                <div class="user-profile" id="adminHeaderProfileBtn" style="cursor: pointer; position: relative;" title="Admin Profile">
+                    <img src="https://ui-avatars.com/api/?name=Admin+User&background=FF0000&color=fff" alt="Admin">
+                    <!-- Admin Profile Dropdown -->
+                    <div id="adminProfileDropdown" style="
+                        display: none;
+                        position: absolute;
+                        top: calc(100% + 10px);
+                        right: 0;
+                        min-width: 230px;
+                        background: var(--surface);
+                        border: 1px solid var(--border);
+                        border-radius: 14px;
+                        box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+                        z-index: 999;
+                        overflow: hidden;
+                    ">
+                        <div style="padding: 1rem 1.25rem; background: var(--bg-light); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 0.75rem;">
+                            <img src="https://ui-avatars.com/api/?name=Admin+User&background=FF0000&color=fff" alt="Admin" style="width: 42px; height: 42px; border-radius: 50%; border: 2px solid var(--primary);">
+                            <div>
+                                <p style="margin:0; font-weight: 700; font-size: 0.95rem; color: var(--text-dark);">Admin User</p>
+                                <p style="margin:0; font-size: 0.78rem; color: var(--text-muted);">Administrator</p>
+                            </div>
+                        </div>
+                        <div style="padding: 0.5rem 0;">
+                            <a href="index.html" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.65rem 1.25rem; color: #e53e3e; font-size: 0.9rem; font-weight: 600; text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='rgba(229,62,62,0.08)'" onmouseout="this.style.background='transparent'">
+                                <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="dashboard-content">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon bg-primary-light">
+                        <i class="fa-solid fa-users text-primary"></i>
+                    </div>
+                    <div class="stat-details">
+                        <h3>Total Members</h3>
+                        <p class="stat-number" id="statTotalMembers">—</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon bg-success-light">
+                        <i class="fa-solid fa-sack-dollar text-success"></i>
+                    </div>
+                    <div class="stat-details">
+                        <h3>Total Revenue</h3>
+                        <p class="stat-number" id="statTotalRevenue">—</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon bg-warning-light">
+                        <i class="fa-regular fa-calendar text-warning"></i>
+                    </div>
+                    <div class="stat-details">
+                        <h3>Active Events</h3>
+                        <p class="stat-number" id="statActiveEvents">—</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="quick-actions">
+                <h3 class="section-title">Quick Actions</h3>
+                <div class="actions-grid">
+                    <button class="action-btn" id="openScannerBtn"><i class="fa-solid fa-qrcode"></i> Scan QR</button>
+                    <button class="action-btn" id="openAddMemberBtn"><i class="fa-solid fa-plus"></i> Add Member</button>
+                    <button class="action-btn" id="openNewEventBtn"><i class="fa-solid fa-calendar-plus"></i> New Event</button>
+                    <button class="action-btn" id="openAnnounceBtn"><i class="fa-solid fa-bullhorn"></i> Announce</button>
+                </div>
+            </div>
+            
+            <div class="recent-activity">
+                <h3 class="section-title">Recent Registrations</h3>
+                <div class="activity-list" id="recentRegistrationsList">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+            <div class="attendance-reports">
+                <h3 class="section-title">Today's Attendance</h3>
+                <div class="dash-card">
+                    <div class="table-responsive">
+                        <table class="table" id="adminAttendanceTable">
+                            <thead>
+                                <tr>
+                                    <th>Player ID</th>
+                                    <th>Name</th>
+                                    <th>Time</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td colspan="4" class="text-center text-muted">No attendance recorded today.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div class="overlay" id="overlay"></div>
+
+    <!-- Enquiries Modal -->
+    <div class="qr-modal" id="enquiriesModal">
+        <div class="qr-modal-content" style="max-width: 900px; width: 95%;">
+            <span class="close-modal" id="closeEnquiriesModal">&times;</span>
+            <h3 class="section-title text-center mt-0">Registration Enquiries</h3>
+            <p class="text-center text-muted mb-3">Review and approve new member sign-ups.</p>
+
+            <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                <table class="table" id="enquiriesTable">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Mobile</th>
+                            <th>Details</th>
+                            <th>Document</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- QR Scanner Modal (Admin) -->
+    <div class="qr-modal" id="qrScannerModal">
+        <div class="qr-modal-content">
+            <span class="close-modal" id="closeScannerModal">&times;</span>
+            <h3 class="section-title text-center mt-0">Scan Attendance</h3>
+            <p class="text-center text-muted mb-3">Scan player's QR code to mark present.</p>
+            <div id="reader" style="width: 100%; max-width: 400px; margin: 0 auto;"></div>
+            
+            <div id="scanResult" class="text-center mt-3" style="display: none;">
+                <div class="success-animation text-success mb-2">
+                    <i class="fa-solid fa-circle-check" style="font-size: 3rem;"></i>
+                </div>
+                <h4 class="text-success font-weight-bold">Attendance Marked!</h4>
+                <p id="scannedPlayerInfo" class="mt-2"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Member Modal -->
+    <div class="qr-modal" id="addMemberModal">
+        <div class="qr-modal-content">
+            <span class="close-modal" id="closeAddMemberModal">&times;</span>
+            <h3 class="section-title text-center mt-0">Add New Member</h3>
+            <p class="text-center text-muted mb-3">Register a new player to the club.</p>
+            
+            <form id="addMemberForm" class="login-form">
+                <div id="addMemberError" class="error-message" style="display: none; margin-bottom: 1rem; border-radius: 8px; padding: 0.75rem; background: var(--error-bg); color: var(--error); border: 1px solid var(--error); text-align: center; font-size: 0.875rem;"></div>
+                <div id="addMemberSuccess" class="error-message" style="display: none; margin-bottom: 1rem; border-radius: 8px; padding: 0.75rem; background: var(--success-light); color: var(--success); border: 1px solid var(--success); text-align: center; font-size: 0.875rem;"></div>
+                
+                <!-- Personal Information -->
+                <h5 style="margin: 1.5rem 0 0.75rem; font-size: 1rem; color: var(--primary); border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;">Personal Information</h5>
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem;">
+                    <div class="form-group" style="flex: 1; min-width: 200px; margin-bottom: 0;">
+                        <label for="newMemberName" style="display: block; font-weight: 500; margin-bottom: 0.5rem; font-size: 0.9rem;">Full Name</label>
+                        <input type="text" id="newMemberName" placeholder="Enter full name" required style="width: 100%; padding: 0.875rem; border: 1px solid var(--border); border-radius: 12px; background: var(--surface-light); color: var(--text-dark); font-size: 1rem;">
+                    </div>
+                    <div class="form-group" style="flex: 1; min-width: 200px; margin-bottom: 0;">
+                        <label for="newMemberFatherName" style="display: block; font-weight: 500; margin-bottom: 0.5rem; font-size: 0.9rem;">Father's Name</label>
+                        <input type="text" id="newMemberFatherName" placeholder="Father's name" required style="width: 100%; padding: 0.875rem; border: 1px solid var(--border); border-radius: 12px; background: var(--surface-light); color: var(--text-dark); font-size: 1rem;">
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem;">
+                    <div class="form-group" style="flex: 1; min-width: 150px; margin-bottom: 0;">
+                        <label for="newMemberDob" style="display: block; font-weight: 500; margin-bottom: 0.5rem; font-size: 0.9rem;">Date of Birth</label>
+                        <input type="date" id="newMemberDob" required style="width: 100%; padding: 0.875rem; border: 1px solid var(--border); border-radius: 12px; background: var(--surface-light); color: var(--text-dark); font-size: 1rem;">
+                    </div>
+                    <div class="form-group" style="flex: 1; min-width: 150px; margin-bottom: 0;">
+                        <label for="newMemberMobile" style="display: block; font-weight: 500; margin-bottom: 0.5rem; font-size: 0.9rem;">Mobile No.</label>
+                        <input type="tel" id="newMemberMobile" placeholder="Phone number" required style="width: 100%; padding: 0.875rem; border: 1px solid var(--border); border-radius: 12px; background: var(--surface-light); color: var(--text-dark); font-size: 1rem;">
+                    </div>
+                </div>
+
+                <!-- Club Details -->
+                <h5 style="margin: 1.5rem 0 0.75rem; font-size: 1rem; color: var(--primary); border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;">Club Details</h5>
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem;">
+                    <div class="form-group" style="flex: 1; min-width: 150px; margin-bottom: 0;">
+                        <label for="newMemberBatch" style="display: block; font-weight: 500; margin-bottom: 0.5rem; font-size: 0.9rem;">Batch</label>
+                        <select id="newMemberBatch" required style="width: 100%; padding: 0.875rem; border: 1px solid var(--border); border-radius: 12px; background: var(--surface-light); color: var(--text-dark); font-size: 1rem; appearance: none;">
+                            <option value="">Select a batch...</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex: 1; min-width: 150px; margin-bottom: 0;">
+                        <label for="newMemberDiscipline" style="display: block; font-weight: 500; margin-bottom: 0.5rem; font-size: 0.9rem;">Discipline</label>
+                        <input type="text" id="newMemberDiscipline" placeholder="e.g. Yoga / Pilates" required style="width: 100%; padding: 0.875rem; border: 1px solid var(--border); border-radius: 12px; background: var(--surface-light); color: var(--text-dark); font-size: 1rem;">
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem;">
+                    <div class="form-group" style="flex: 1; min-width: 150px; margin-bottom: 0;">
+                        <label for="newMemberPlan" style="display: block; font-weight: 500; margin-bottom: 0.5rem; font-size: 0.9rem;">Fees Plan</label>
+                        <select id="newMemberPlan" required style="width: 100%; padding: 0.875rem; border: 1px solid var(--border); border-radius: 12px; background: var(--surface-light); color: var(--text-dark); font-size: 1rem; appearance: none;">
+                            <option value="">Select Plan...</option>
+                            <option value="Monthly">Monthly</option>
+                            <option value="Quarterly">Quarterly</option>
+                            <option value="Half-Yearly">Half-Yearly</option>
+                            <option value="Yearly">Yearly</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex: 1; min-width: 150px; margin-bottom: 0;">
+                        <label for="newMemberAddons" style="display: block; font-weight: 500; margin-bottom: 0.5rem; font-size: 0.9rem;">Extra Add-ons</label>
+                        <input type="text" id="newMemberAddons" placeholder="e.g. Diet Plan, Locker" style="width: 100%; padding: 0.875rem; border: 1px solid var(--border); border-radius: 12px; background: var(--surface-light); color: var(--text-dark); font-size: 1rem;">
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem;">
+                    <div class="form-group" style="flex: 1; min-width: 120px; margin-bottom: 0;">
+                        <label style="display: block; font-weight: 500; margin-bottom: 0.5rem; font-size: 0.9rem;">Enrollment Fee (₹)</label>
+                        <input type="number" id="newMemberEnrollmentFee" readonly placeholder="Auto-fills" style="width: 100%; padding: 0.875rem; border: 1px solid var(--border); border-radius: 12px; background: var(--border); color: var(--text-dark); font-size: 1rem; cursor: not-allowed;">
+                    </div>
+                    <div class="form-group" style="flex: 1; min-width: 120px; margin-bottom: 0;">
+                        <label style="display: block; font-weight: 500; margin-bottom: 0.5rem; font-size: 0.9rem;">Monthly Fee (₹)</label>
+                        <input type="number" id="newMemberMonthlyFee" readonly placeholder="Auto-fills" style="width: 100%; padding: 0.875rem; border: 1px solid var(--border); border-radius: 12px; background: var(--border); color: var(--text-dark); font-size: 1rem; cursor: not-allowed;">
+                    </div>
+                    <div class="form-group" style="flex: 1; min-width: 120px; margin-bottom: 0;">
+                        <label for="newMemberDiscount" style="display: block; font-weight: 500; margin-bottom: 0.5rem; font-size: 0.9rem;">Discount (₹)</label>
+                        <input type="number" id="newMemberDiscount" placeholder="e.g. 500" value="0" min="0" style="width: 100%; padding: 0.875rem; border: 1px solid var(--border); border-radius: 12px; background: var(--surface-light); color: var(--text-dark); font-size: 1rem;">
+                    </div>
+                </div>
+
+                <!-- Account Information -->
+                <h5 style="margin: 1.5rem 0 0.75rem; font-size: 1rem; color: var(--primary); border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;">Account Information</h5>
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem;">
+                    <div class="form-group" style="flex: 1; min-width: 200px; margin-bottom: 0;">
+                        <label for="newMemberPassword" style="display: block; font-weight: 500; margin-bottom: 0.5rem; font-size: 0.9rem;">Login Password</label>
+                        <input type="password" id="newMemberPassword" placeholder="Create a password" required style="width: 100%; padding: 0.875rem; border: 1px solid var(--border); border-radius: 12px; background: var(--surface-light); color: var(--text-dark); font-size: 1rem;">
+                    </div>
+                    <div class="form-group" style="flex: 1; min-width: 200px; margin-bottom: 0;">
+                        <label for="newMemberPhoto" style="display: block; font-weight: 500; margin-bottom: 0.5rem; font-size: 0.9rem;">Profile Photo</label>
+                        <input type="file" id="newMemberPhoto" accept="image/*" style="width: 100%; padding: 0.875rem; border: 1px solid var(--border); border-radius: 12px; background: white; color: var(--text-dark); font-size: 1rem;">
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Register Player</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Manage Members Modal -->
+    <div class="qr-modal" id="manageMembersModal">
+        <div class="qr-modal-content" style="max-width: 600px; width: 95%;">
+            <span class="close-modal" id="closeManageMembersModal">&times;</span>
+            <h3 class="section-title text-center mt-0">Manage Members</h3>
+            <p class="text-center text-muted mb-3">View and manage all registered club members.</p>
+            
+            <div class="mb-3" style="display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap;" id="memberFilters">
+                <button class="btn btn-sm btn-primary filter-btn active" data-filter="All">All Members</button>
+                <button class="btn btn-sm btn-outline-primary filter-btn" data-filter="Live">Live Members</button>
+                <button class="btn btn-sm btn-outline-primary filter-btn" data-filter="Expired">Expired Members</button>
+                <button class="btn btn-sm btn-outline-primary filter-btn" data-filter="Left">Left Members</button>
+            </div>
+
+            <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                <table class="table" id="allMembersTable">
+                    <thead>
+                        <tr>
+                            <th>Player ID</th>
+                            <th>Name</th>
+                            <th>Status</th>
+                            <th>Joined</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manage Coaches Modal -->
+    <div class="qr-modal" id="manageCoachesModal">
+        <div class="qr-modal-content" style="max-width: 600px; width: 95%;">
+            <span class="close-modal" id="closeManageCoachesModal">&times;</span>
+            <h3 class="section-title text-center mt-0">Manage Coaches</h3>
+            <p class="text-center text-muted mb-3">View and add club coaches.</p>
+
+            <form id="addCoachForm" class="login-form mb-3" style="background: var(--bg-light); padding: 1rem; border-radius: var(--radius); border: 1px solid var(--border);">
+                <h4 style="margin-bottom: 1rem; font-size: 1rem;">Add New Coach</h4>
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <div class="form-group" style="flex: 1; min-width: 200px; margin-bottom: 0;">
+                        <input type="text" id="newCoachName" placeholder="Coach Name" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px;">
+                    </div>
+                    <div class="form-group" style="flex: 1; min-width: 200px; margin-bottom: 0;">
+                        <input type="text" id="newCoachSpecialty" placeholder="Specialty (e.g. Yoga)" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px;">
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="white-space: nowrap;">Add Coach</button>
+                </div>
+            </form>
+            
+            <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                <table class="table" id="allCoachesTable">
+                    <thead>
+                        <tr>
+                            <th>Coach ID</th>
+                            <th>Name</th>
+                            <th>Specialty</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manage Banners Modal -->
+    <div class="qr-modal" id="manageBannersModal">
+        <div class="qr-modal-content" style="max-width: 700px; width: 95%;">
+            <span class="close-modal" id="closeManageBannersModal">&times;</span>
+            <h3 class="section-title text-center mt-0">Manage Banners</h3>
+            <p class="text-center text-muted mb-3">View and add home page banners.</p>
+
+            <form id="addBannerForm" class="login-form mb-3" style="background: var(--bg-light); padding: 1rem; border-radius: var(--radius); border: 1px solid var(--border);">
+                <h4 style="margin-bottom: 1rem; font-size: 1rem;">Add New Banner</h4>
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <div class="form-group" style="flex: 1; min-width: 200px; margin-bottom: 0;">
+                        <input type="file" id="newBannerImage" accept="image/*" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; background: white;" title="Upload Image File">
+                    </div>
+                    <div style="display: flex; align-items: center; justify-content: center; padding: 0.5rem; color: var(--text-light); font-weight: 500;">OR</div>
+                    <div class="form-group" style="flex: 1; min-width: 200px; margin-bottom: 0;">
+                        <input type="url" id="newBannerUrl" placeholder="Image URL (e.g. from Unsplash)" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px;">
+                    </div>
+                </div>
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1rem;">
+                    <div class="form-group" style="flex: 1; min-width: 200px; margin-bottom: 0;">
+                        <input type="text" id="newBannerTitle" placeholder="Banner Title" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px;">
+                    </div>
+                    <div class="form-group" style="flex: 1; min-width: 200px; margin-bottom: 0;">
+                        <input type="text" id="newBannerSubtitle" placeholder="Subtitle text" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px;">
+                    </div>
+                </div>
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1rem;">
+                    <div class="form-group" style="flex: 1; min-width: 200px; margin-bottom: 0;">
+                        <input type="url" id="newBannerRedirect" placeholder="Redirect Link (optional) e.g. https://google.com" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px;">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary mt-3" style="width: 100%;">Add Banner</button>
+            </form>
+            
+            <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                <table class="table" id="allBannersTable">
+                    <thead>
+                        <tr>
+                            <th>Image</th>
+                            <th>Title</th>
+                            <th>Subtitle</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <!-- Manage Announcements Modal -->
+    <div class="qr-modal" id="manageAnnouncementsModal">
+        <div class="qr-modal-content" style="max-width: 800px; width: 95%;">
+            <span class="close-modal" id="closeManageAnnouncementsModal">&times;</span>
+            <h3 class="section-title text-center mt-0">Chat Room & Announcements</h3>
+            <p class="text-center text-muted mb-3">Broadcast messages and images to specific groups.</p>
+
+            <form id="addAnnouncementForm" class="login-form mb-3" style="background: var(--bg-light); padding: 1rem; border-radius: var(--radius); border: 1px solid var(--border);">
+                <h4 style="margin-bottom: 1rem; font-size: 1rem;">New Announcement</h4>
+                
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem;">
+                    <div class="form-group" style="flex: 2; min-width: 200px; margin-bottom: 0;">
+                        <input type="text" id="newAnnTitle" placeholder="Announcement Title" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px;">
+                    </div>
+                    <div class="form-group" style="flex: 1; min-width: 150px; margin-bottom: 0;">
+                        <select id="newAnnAudience" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; appearance: none; background: white;">
+                            <option value="">Select Target Audience...</option>
+                            <option value="All Members">All Members</option>
+                            <option value="Expired Members">Expired Members</option>
+                            <!-- Batches populated by JS -->
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <textarea id="newAnnMessage" rows="3" placeholder="Type your message here..." required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; resize: vertical; font-family: inherit; font-size: 0.95rem;"></textarea>
+                </div>
+
+                <div style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;">
+                    <div class="form-group" style="flex: 2; margin-bottom: 0;">
+                        <label for="newAnnImage" style="display: block; font-weight: 500; font-size: 0.8rem; margin-bottom: 0.5rem;">Attach Photo/Banner (Optional)</label>
+                        <input type="file" id="newAnnImage" accept="image/*" style="width: 100%; padding: 0.65rem; border: 1px solid var(--border); border-radius: 8px; background: white; font-size: 0.9rem;">
+                    </div>
+                    <div style="flex: 1; min-width: 120px;">
+                        <button type="submit" class="btn btn-primary" style="width: 100%;"><i class="fa-solid fa-paper-plane"></i> Post</button>
+                    </div>
+                </div>
+            </form>
+            
+            <div class="table-responsive" style="max-height: 350px; overflow-y: auto;">
+                <table class="table" id="allAnnouncementsTable">
+                    <thead>
+                        <tr>
+                            <th style="width: 120px;">Image</th>
+                            <th>Details</th>
+                            <th>Audience</th>
+                            <th>Date</th>
+                            <th style="width: 60px;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manage Events Modal -->
+    <div class="qr-modal" id="manageEventsModal">
+        <div class="qr-modal-content" style="max-width: 900px; width: 95%;">
+            <span class="close-modal" id="closeManageEventsModal">&times;</span>
+            <h3 class="section-title text-center mt-0">Manage Events</h3>
+            <p class="text-center text-muted mb-3">Create new events and review player registrations.</p>
+
+            <form id="addEventForm" class="login-form mb-3" style="background: var(--bg-light); padding: 1rem; border-radius: var(--radius); border: 1px solid var(--border);">
+                <h4 style="margin-bottom: 1rem; font-size: 1rem;">Create New Event</h4>
+                
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem;">
+                    <div class="form-group" style="flex: 2; min-width: 200px; margin-bottom: 0;">
+                        <input type="text" id="newEventTitle" placeholder="Event Title (e.g., Summer Tournament)" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px;">
+                    </div>
+                    <div class="form-group" style="flex: 1; min-width: 150px; margin-bottom: 0;">
+                        <input type="date" id="newEventDate" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px;">
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <textarea id="newEventDesc" rows="2" placeholder="Event Description..." required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; resize: vertical;"></textarea>
+                </div>
+                
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; align-items: center;">
+                    <div class="form-group" style="flex: 1; min-width: 200px; margin-bottom: 0;">
+                        <label style="display: block; font-weight: 500; font-size: 0.8rem; margin-bottom: 0.5rem;">Event Banner (Mandatory)</label>
+                        <input type="file" id="newEventBanner" accept="image/*" required style="width: 100%; padding: 0.65rem; border: 1px solid var(--border); border-radius: 8px; background: white; font-size: 0.9rem;">
+                    </div>
+                    <div style="flex: 1; display: flex; gap: 1rem; align-items: center;">
+                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                            <input type="checkbox" id="newEventRequiresFee"> Requires Fee?
+                        </label>
+                        <input type="number" id="newEventFee" placeholder="Fee Amount (₹)" style="display: none; width: 120px; padding: 0.5rem; border: 1px solid var(--border); border-radius: 8px;">
+                    </div>
+                </div>
+
+                <div id="extendedPaymentDetails" style="display: none; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; padding: 1rem; background: var(--surface-light); border-radius: 8px; border: 1px dashed var(--border);">
+                    <div class="form-group" style="flex: 1; min-width: 200px; margin-bottom: 0;">
+                        <label style="display: block; font-weight: 500; font-size: 0.8rem; margin-bottom: 0.5rem;">Payment QR Code (Optional)</label>
+                        <input type="file" id="newEventPaymentQr" accept="image/*" style="width: 100%; padding: 0.65rem; border: 1px solid var(--border); border-radius: 8px; background: white; font-size: 0.9rem;">
+                    </div>
+                    <div class="form-group" style="flex: 1; min-width: 200px; margin-bottom: 0;">
+                        <label style="display: block; font-weight: 500; font-size: 0.8rem; margin-bottom: 0.5rem;">UPI ID (Optional)</label>
+                        <input type="text" id="newEventUpiId" placeholder="e.g. club@upi" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px;">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-full"><i class="fa-solid fa-plus"></i> Create Event</button>
+            </form>
+            
+            <h4 style="margin-top: 1.5rem; margin-bottom: 1rem; font-size: 1.1rem; border-bottom: 2px solid var(--border); padding-bottom: 0.5rem;">Active Events</h4>
+            <div class="table-responsive" style="max-height: 350px; overflow-y: auto;">
+                <table class="table" id="allEventsTable">
+                    <thead>
+                        <tr>
+                            <th style="width: 80px;">Banner</th>
+                            <th>Event Details</th>
+                            <th>Fee</th>
+                            <th>Registrations</th>
+                            <th style="width: 60px;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Event Registrations Sub-Modal -->
+    <div class="qr-modal" id="eventRegistrationsModal" style="z-index: 1060;">
+        <div class="qr-modal-content" style="max-width: 800px; width: 95%;">
+            <span class="close-modal" id="closeEventRegistrationsModal">&times;</span>
+            <h3 class="section-title text-center mt-0" id="regModalEventTitle">Event Registrations</h3>
+            
+            <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                <table class="table" id="eventRegistrationsTable">
+                    <thead>
+                        <tr>
+                            <th>Player</th>
+                            <th>Photo</th>
+                            <th>Payment</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manage Batches Modal -->
+    <div class="qr-modal" id="manageBatchesModal">
+        <div class="qr-modal-content" style="max-width: 600px; width: 95%;">
+            <span class="close-modal" id="closeManageBatchesModal">&times;</span>
+            <h3 class="section-title text-center mt-0">Manage Batches</h3>
+            <p class="text-center text-muted mb-3">Create and view class batches.</p>
+
+            <form id="addBatchForm" class="login-form mb-3" style="background: var(--bg-light); padding: 1rem; border-radius: var(--radius); border: 1px solid var(--border);">
+                <h4 style="margin-bottom: 1rem; font-size: 1rem;">Add New Batch</h4>
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <div class="form-group" style="flex: 1; min-width: 150px; margin-bottom: 0;">
+                        <input type="text" id="newBatchName" placeholder="Batch Name (e.g. Morning Yoga)" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px;">
+                    </div>
+                </div>
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1rem;">
+                    <div class="form-group" style="flex: 1; min-width: 150px; margin-bottom: 0;">
+                        <input type="text" id="newBatchTime" placeholder="Time (e.g. 06:00 AM - 07:00 AM)" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px;">
+                    </div>
+                    <div class="form-group" style="flex: 1; min-width: 150px; margin-bottom: 0;">
+                        <input type="text" id="newBatchInstructor" placeholder="Instructor Name" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px;">
+                    </div>
+                </div>
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1rem;">
+                    <div class="form-group" style="flex: 1; min-width: 150px; margin-bottom: 0;">
+                        <input type="number" id="newBatchEnrollmentFee" placeholder="Enrollment Fee (₹)" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px;">
+                    </div>
+                    <div class="form-group" style="flex: 1; min-width: 150px; margin-bottom: 0;">
+                        <input type="number" id="newBatchMonthlyFee" placeholder="Monthly Fee (₹)" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px;">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary mt-3" style="width: 100%;">Create Batch</button>
+            </form>
+            
+            <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                <table class="table" id="allBatchesTable">
+                    <thead>
+                        <tr>
+                            <th>Batch Name</th>
+                            <th>Time</th>
+                            <th>Instructor</th>
+                            <th>Enrollment Fee</th>
+                            <th>Monthly Fee</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fee Management Modal -->
+    <div class="qr-modal" id="feeManagementModal">
+        <div class="qr-modal-content" style="max-width: 800px; width: 95%;">
+            <span class="close-modal" id="closeFeeManagementModal">&times;</span>
+            <h3 class="section-title text-center mt-0">Fee Management</h3>
+            <p class="text-center text-muted mb-3">View member fee status and log payments.</p>
+
+            <form id="logPaymentForm" class="login-form mb-3" style="background: var(--bg-light); padding: 1rem; border-radius: var(--radius); border: 1px solid var(--border);">
+                <h4 style="margin-bottom: 1rem; font-size: 1rem;">Log New Payment</h4>
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <div class="form-group" style="flex: 2; min-width: 200px; margin-bottom: 0;">
+                        <label for="paymentMemberId" style="display: block; font-weight: 500; margin-bottom: 0.5rem; font-size: 0.8rem;">Select Member</label>
+                        <select id="paymentMemberId" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; appearance: none; background: white;">
+                            <option value="">Select Member...</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex: 1; min-width: 120px; margin-bottom: 0;">
+                        <label for="paymentAmount" style="display: block; font-weight: 500; margin-bottom: 0.5rem; font-size: 0.8rem;">Amount</label>
+                        <input type="number" id="paymentAmount" placeholder="Amount" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px;">
+                    </div>
+                </div>
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1rem;">
+                    <div class="form-group" style="flex: 1; min-width: 150px; margin-bottom: 0;">
+                        <label for="paymentType" style="display: block; font-weight: 500; margin-bottom: 0.5rem; font-size: 0.8rem;">Payment Type</label>
+                        <select id="paymentType" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; appearance: none; background: white;">
+                            <option value="Monthly">Monthly/Routine Fee</option>
+                            <option value="Enrollment">Enrollment Fee (One-time)</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex: 1; min-width: 150px; margin-bottom: 0;">
+                        <label for="paymentMethod" style="display: block; font-weight: 500; margin-bottom: 0.5rem; font-size: 0.8rem;">Payment Method</label>
+                        <select id="paymentMethod" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; appearance: none; background: white;">
+                            <option value="Cash">Cash</option>
+                            <option value="UPI">UPI</option>
+                            <option value="Card">Card</option>
+                            <option value="Bank Transfer">Bank Transfer</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex: 1; min-width: 150px; display: flex; align-items: flex-end; margin-bottom: 0;">
+                        <button type="submit" class="btn btn-success" style="width: 100%;">Record Payment</button>
+                    </div>
+                </div>
+            </form>
+            
+            <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                <table class="table" id="feeStatusTable">
+                    <thead>
+                        <tr>
+                            <th>Member</th>
+                            <th>Batch</th>
+                            <th>Enrollment Status</th>
+                            <th>Monthly Status</th>
+                            <th>Last Monthly Payment</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Registration Receipt Modal -->
+    <div class="qr-modal" id="receiptModal">
+        <div class="qr-modal-content" style="max-width: 500px; width: 95%; background: var(--bg-light); position: relative;">
+            <span class="close-modal" id="closeReceiptModal">&times;</span>
+            <div id="receiptContent" style="padding: 1.5rem; border: 2px dashed var(--border); border-radius: 8px; background: var(--bg-light);">
+                <div class="text-center mb-3">
+                    <img src="logo.png" alt="Yoddha Club Logo" style="height: 50px; margin-bottom: 10px;">
+                    <h2 style="font-size: 1.5rem; font-weight: 700; margin: 0; color: var(--text-dark);">Yoddha Club</h2>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">Registration Receipt</p>
+                </div>
+                <hr style="border-top: 1px dashed var(--border); border-bottom: none; margin: 1rem 0;">
+                
+                <div style="font-family: monospace; font-size: 0.95rem; color: var(--text-dark);">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <span>Date:</span> <span id="receiptDate" class="font-weight-bold"></span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <span>Member ID:</span> <span id="receiptMemberId" class="font-weight-bold"></span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <span>Name:</span> <span id="receiptName" class="font-weight-bold"></span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <span>Batch:</span> <span id="receiptBatch" class="font-weight-bold"></span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <span>Plan:</span> <span id="receiptPlan" class="font-weight-bold"></span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <span>Add-ons:</span> <span id="receiptAddons" class="font-weight-bold"></span>
+                    </div>
+                    
+                    <hr style="border-top: 1px solid var(--border); border-bottom: none; margin: 1rem 0;">
+                    
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <span>Enrollment Fee:</span> <span id="receiptEnrollmentFee" class="font-weight-bold text-primary"></span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <span>Monthly Fee x1:</span> <span id="receiptMonthlyFee" class="font-weight-bold text-primary"></span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <span>Discount:</span> <span id="receiptDiscount" class="font-weight-bold text-danger"></span>
+                    </div>
+                    
+                    <hr style="border-top: 2px solid var(--text-dark); border-bottom: none; margin: 1rem 0;">
+                    
+                    <div style="display: flex; justify-content: space-between; font-size: 1.1rem;">
+                        <span class="font-weight-bold">Total Payable:</span> <span id="receiptTotal" class="font-weight-bold text-primary"></span>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-3" style="font-size: 0.8rem; color: var(--text-muted);">
+                    <p>Welcome to the Yoddha Family!</p>
+                </div>
+            </div>
+            <button id="printReceiptBtn" class="btn btn-primary btn-full mt-3"><i class="fa-solid fa-print"></i> Print Receipt</button>
+        </div>
+    </div>
+
+    <!-- Admin Player Profile Modal -->
+    <div class="qr-modal" id="adminPlayerProfileModal">
+        <div class="qr-modal-content" style="max-width: 500px; width: 95%;">
+            <span class="close-modal" id="closeAdminPlayerProfileModal">&times;</span>
+            <h3 class="section-title text-center mt-0" style="margin-bottom: 0.5rem;">Player Profile</h3>
+            
+            <div class="text-center mb-3">
+                <div style="display: inline-block; position: relative;">
+                    <img id="adminProfileAvatar" src="https://ui-avatars.com/api/?name=Player&background=FF0000&color=fff" alt="Player" style="width: 90px; height: 90px; border-radius: 50%; border: 3px solid var(--primary); object-fit: cover; display: block;">
+                    <label for="adminChangePhotoInput" title="Change Photo" style="position: absolute; bottom: 0; right: 0; background: var(--primary); color: #fff; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.75rem; box-shadow: 0 2px 6px rgba(0,0,0,0.3);">
+                        <i class="fa-solid fa-camera"></i>
+                    </label>
+                    <input type="file" id="adminChangePhotoInput" accept="image/*" style="display: none;">
+                </div>
+                <small id="adminPhotoChangeMsg" class="text-success d-block mt-1" style="display: none !important;"></small>
+                <h4 id="adminProfileName" class="font-weight-bold" style="font-size: 1.25rem;">Player Name</h4>
+                <p id="adminProfileId" class="text-muted" style="margin-top: 5px;">CLUB-PLAYER-0000</p>
+                <p id="adminProfileMobile" class="text-muted" style="margin-top: 0;"><i class="fa-solid fa-phone" style="font-size: 0.8rem;"></i> <span id="adminProfilePhoneNum"></span></p>
+            </div>
+
+            <div class="profile-details" style="background: var(--bg-light); padding: 1rem; border-radius: var(--radius); border: 1px solid var(--border);">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.75rem;">
+                    <span class="text-muted font-weight-bold">Status:</span>
+                    <span id="adminProfileStatus" class="badge"></span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.75rem;">
+                    <span class="text-muted font-weight-bold">Joined:</span>
+                    <span id="adminProfileJoined" class="font-weight-bold"></span>
+                </div>
+                <hr style="border-top: 1px dashed var(--border); border-bottom: none; margin: 0.75rem 0;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.75rem;">
+                    <span class="text-muted font-weight-bold">Plan:</span>
+                    <span id="adminProfilePlan" class="font-weight-bold text-dark"></span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.75rem;">
+                    <span class="text-muted font-weight-bold">Batch:</span>
+                    <span id="adminProfileBatch" class="font-weight-bold text-dark"></span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.75rem;">
+                    <span class="text-muted font-weight-bold">Add-ons:</span>
+                    <span id="adminProfileAddons" class="font-weight-bold text-dark"></span>
+                </div>
+                <hr style="border-top: 1px dashed var(--border); border-bottom: none; margin: 0.75rem 0;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span class="text-muted font-weight-bold">Enrollment Fee:</span>
+                    <span id="adminProfileEnrollmentFee" class="font-weight-bold text-dark"></span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span class="text-muted font-weight-bold">Monthly Fee:</span>
+                    <span id="adminProfileMonthlyFee" class="font-weight-bold text-primary"></span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span class="text-muted font-weight-bold">Discount:</span>
+                    <span id="adminProfileDiscount" class="font-weight-bold text-danger"></span>
+                </div>
+            </div>
+
+            <!-- Documents Section -->
+            <div class="profile-details mt-3" style="background: var(--bg-light); padding: 1rem; border-radius: var(--radius); border: 1px solid var(--border);">
+                <h5 style="margin-top: 0; margin-bottom: 0.75rem; font-size: 1rem; color: var(--text-dark);">Documents & PDF</h5>
+                
+                <div id="adminProfileDocView" style="margin-bottom: 1rem; display: none;">
+                    <a id="adminProfileDocLink" href="#" download="Player_Document.pdf" class="btn btn-sm btn-outline" style="border-color: var(--primary); color: var(--primary); display: inline-flex; align-items: center; gap: 0.5rem;"><i class="fa-solid fa-file-pdf text-danger"></i> View / Download Document</a>
+                </div>
+                
+                <div id="adminProfileDocUpload">
+                    <label for="adminProfileDocFile" style="display: block; font-weight: 500; font-size: 0.8rem; margin-bottom: 0.5rem; color: var(--text-muted);">Upload or Replace Document (PDF/Image)</label>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <input type="file" id="adminProfileDocFile" accept=".pdf,image/*" style="flex: 1; padding: 0.5rem; border: 1px solid var(--border); border-radius: 4px; background: white; font-size: 0.8rem;">
+                        <button id="adminProfileUploadBtn" class="btn btn-sm btn-primary" style="white-space: nowrap;">Upload</button>
+                    </div>
+                    <small id="adminProfileUploadMsg" class="text-success mt-1" style="display: none;"></small>
+                </div>
+            </div>
+
+            <!-- Attendance History Section -->
+            <div class="profile-details mt-3" style="background: var(--bg-light); padding: 1rem; border-radius: var(--radius); border: 1px solid var(--border);">
+                <h5 style="margin-top: 0; margin-bottom: 0.75rem; font-size: 1rem; color: var(--text-dark);">Recent Attendance</h5>
+                <div class="table-responsive" style="max-height: 150px; overflow-y: auto;">
+                    <table class="table" style="font-size: 0.85rem;" id="adminPlayerAttendanceTable">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Time</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Populated by JS -->
+                            <tr><td colspan="3" class="text-center text-muted">No records found.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Payment History Section -->
+            <div class="profile-details mt-3 mb-2" style="background: var(--bg-light); padding: 1rem; border-radius: var(--radius); border: 1px solid var(--border);">
+                <h5 style="margin-top: 0; margin-bottom: 0.75rem; font-size: 1rem; color: var(--text-dark);">Payment History</h5>
+                <div class="table-responsive" style="max-height: 150px; overflow-y: auto;">
+                    <table class="table" style="font-size: 0.85rem;" id="adminPlayerPaymentsTable">
+                        <thead>
+                            <tr>
+                                <th>Date & Time</th>
+                                <th>Amount</th>
+                                <th>Type</th>
+                                <th>Method</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Populated by JS -->
+                            <tr><td colspan="4" class="text-center text-muted">No records found.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Future hook for an "Edit Player" button if needed -->
+            <button class="btn btn-outline btn-full mt-3 text-primary" style="border-color: var(--primary); display:none;">Edit Profile</button>
+        </div>
+    </div>
+
+    <!-- Payment Receipt Modal -->
+    <div class="qr-modal" id="paymentReceiptModal">
+        <div class="qr-modal-content" style="max-width: 500px; width: 95%; background: var(--bg-light); position: relative;">
+            <span class="close-modal" id="closePaymentReceiptModal">&times;</span>
+            <div id="paymentReceiptContent" style="padding: 1.5rem; border: 2px dashed var(--border); border-radius: 8px; background: var(--bg-light);">
+                <div class="text-center mb-3">
+                    <img src="logo.png" alt="Yoddha Club Logo" style="height: 50px; margin-bottom: 10px;">
+                    <h2 style="font-size: 1.5rem; font-weight: 700; margin: 0; color: var(--text-dark);">Yoddha Club</h2>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">Payment Receipt</p>
+                </div>
+                <hr style="border-top: 1px dashed var(--border); border-bottom: none; margin: 1rem 0;">
+                
+                <div style="font-family: monospace; font-size: 0.95rem; color: var(--text-dark);">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <span>Date:</span> <span id="payReceiptDate" class="font-weight-bold"></span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <span>Member ID:</span> <span id="payReceiptMemberId" class="font-weight-bold"></span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <span>Name:</span> <span id="payReceiptName" class="font-weight-bold"></span>
+                    </div>
+                    
+                    <hr style="border-top: 1px solid var(--border); border-bottom: none; margin: 1rem 0;">
+                    
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <span>Payment Type:</span> <span id="payReceiptType" class="font-weight-bold"></span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <span>Method:</span> <span id="payReceiptMethod" class="font-weight-bold"></span>
+                    </div>
+                    
+                    <hr style="border-top: 2px solid var(--text-dark); border-bottom: none; margin: 1rem 0;">
+                    
+                    <div style="display: flex; justify-content: space-between; font-size: 1.1rem;">
+                        <span class="font-weight-bold">Amount Paid:</span> <span id="payReceiptAmount" class="font-weight-bold text-success"></span>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-3" style="font-size: 0.8rem; color: var(--text-muted);">
+                    <p>Thank you for your payment!</p>
+                </div>
+            </div>
+            <button id="printPaymentReceiptBtn" class="btn btn-primary btn-full mt-3"><i class="fa-solid fa-print"></i> Print Receipt</button>
+        </div>
+    </div>
+
+    <!-- Assign Tasks Modal -->
+    <div class="qr-modal" id="manageTasksModal">
+        <div class="qr-modal-content" style="max-width: 700px; width: 95%;">
+            <span class="close-modal" id="closeManageTasksModal">&times;</span>
+            <h3 class="section-title text-center mt-0">Assign Workout Tasks</h3>
+            <p class="text-center text-muted mb-3">Create and assign daily workout tasks to one or all members.</p>
+
+            <form id="addTaskForm" class="login-form mb-3" style="background: var(--bg-light); padding: 1rem; border-radius: var(--radius); border: 1px solid var(--border);">
+                <h4 style="margin-bottom: 1rem; font-size: 1rem;">New Task</h4>
+
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem;">
+                    <div class="form-group" style="flex: 2; min-width: 200px; margin-bottom: 0;">
+                        <label style="display: block; font-weight: 500; font-size: 0.85rem; margin-bottom: 0.4rem;">Task Title</label>
+                        <input type="text" id="newTaskTitle" placeholder="e.g. Chest & Triceps Day" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px;">
+                    </div>
+                    <div class="form-group" style="flex: 1; min-width: 150px; margin-bottom: 0;">
+                        <label style="display: block; font-weight: 500; font-size: 0.85rem; margin-bottom: 0.4rem;">Date</label>
+                        <input type="date" id="newTaskDate" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px;">
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label style="display: block; font-weight: 500; font-size: 0.85rem; margin-bottom: 0.4rem;">Workout Description</label>
+                    <textarea id="newTaskDescription" rows="3" placeholder="e.g. 4x10 Bench Press, 3x12 Tricep Dips, 3x15 Cable Flyes..." style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; resize: vertical; font-family: inherit; font-size: 0.9rem;"></textarea>
+                </div>
+
+                <!-- Assign To -->
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label style="display: block; font-weight: 500; font-size: 0.85rem; margin-bottom: 0.4rem;">Assign To</label>
+                    <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+                        <label style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer; font-size: 0.9rem;">
+                            <input type="radio" name="taskAssign" id="taskAssignAll" value="All" checked> All Members
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer; font-size: 0.9rem;">
+                            <input type="radio" name="taskAssign" id="taskAssignSpecific" value="Specific"> Specific Members
+                        </label>
+                    </div>
+                    <!-- Members checkbox list, shown when Specific is selected -->
+                    <div id="taskMemberPickerWrapper" style="display: none; max-height: 160px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; padding: 0.5rem; background: var(--bg-light);">
+                        <div id="taskMemberCheckboxList">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <div id="addTaskMsg" style="display: none; margin-bottom: 0.75rem;"></div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;"><i class="fa-solid fa-plus"></i> Assign Task</button>
+            </form>
+
+            <!-- Existing Tasks Table -->
+            <div class="table-responsive" style="max-height: 320px; overflow-y: auto;">
+                <table class="table" id="allTasksTable">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Title</th>
+                            <th>Description</th>
+                            <th>Assigned To</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- HTML5 Qrcode library -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <!-- Chart.js for Training Tracker -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="db.js"></script>
+    <script src="dashboard.js"></script>
+    <script src="admin-app.js"></script>
+    <!-- Leave Requests Modal (Admin) -->
+    <div class="qr-modal" id="leaveRequestsModal">
+        <div class="qr-modal-content" style="max-width: 900px; width: 95%;">
+            <span class="close-modal" id="closeLeaveRequestsModal">&times;</span>
+            <h3 class="section-title text-center mt-0" style="display:flex;align-items:center;justify-content:center;gap:0.5rem;">
+                <i class="fa-solid fa-calendar-minus" style="color:var(--primary);"></i> Leave Requests
+            </h3>
+            <p class="text-center text-muted mb-3" style="font-size:0.88rem;">Review and action member leave applications.</p>
+
+            <!-- Filter tabs -->
+            <div style="display:flex;gap:0.5rem;flex-wrap:wrap;justify-content:center;margin-bottom:1rem;" id="leaveFilterTabs">
+                <button class="btn btn-sm btn-primary leave-filter-btn active" data-filter="All">All</button>
+                <button class="btn btn-sm btn-outline-primary leave-filter-btn" data-filter="Pending"><i class="fa-solid fa-hourglass-half"></i> Pending</button>
+                <button class="btn btn-sm btn-outline-primary leave-filter-btn" data-filter="Approved"><i class="fa-solid fa-check"></i> Approved</button>
+                <button class="btn btn-sm btn-outline-primary leave-filter-btn" data-filter="Rejected"><i class="fa-solid fa-xmark"></i> Rejected</button>
+            </div>
+
+            <div class="table-responsive" style="max-height: 480px; overflow-y: auto;">
+                <table class="table" id="leaveRequestsTable">
+                    <thead>
+                        <tr>
+                            <th>Member</th>
+                            <th>Date Range</th>
+                            <th>Reason</th>
+                            <th>Parent Phone</th>
+                            <th>Applied</th>
+                            <th>Status</th>
+                            <th style="width:140px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaveRequestsTableBody">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Diet Plans Modal (Admin) -->
+    <div class="qr-modal" id="dietPlansModal">
+        <div class="qr-modal-content" style="max-width: 820px; width: 95%;">
+            <span class="close-modal" id="closeDietPlansModal">&times;</span>
+            <h3 class="section-title text-center mt-0" style="display:flex;align-items:center;justify-content:center;gap:0.5rem;">
+                <i class="fa-solid fa-bowl-food" style="color:var(--primary);"></i> Diet Plans
+            </h3>
+            <p class="text-center text-muted mb-3" style="font-size:0.88rem;">Create and manage diet plans for members by goal or individually.</p>
+
+            <!-- Create Plan Form -->
+            <form id="addDietPlanForm" style="background:var(--bg-light);padding:1.25rem;border-radius:var(--radius);border:1px solid var(--border);margin-bottom:1.5rem;">
+                <h4 style="margin:0 0 1rem;font-size:1rem;color:var(--text-dark);">Add New Diet Plan</h4>
+
+                <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1rem;">
+                    <div style="flex:2;min-width:200px;">
+                        <label style="display:block;font-weight:600;font-size:0.82rem;margin-bottom:0.4rem;color:var(--text-dark);">Plan Title <span style="color:var(--primary);">*</span></label>
+                        <input type="text" id="dietPlanTitle" required placeholder="e.g. High Protein Weight Loss Plan" style="width:100%;padding:0.75rem;border:1px solid var(--border);border-radius:8px;background:var(--surface-light);color:var(--text-dark);font-size:0.9rem;">
+                    </div>
+                    <div style="flex:1;min-width:160px;">
+                        <label style="display:block;font-weight:600;font-size:0.82rem;margin-bottom:0.4rem;color:var(--text-dark);">Category <span style="color:var(--primary);">*</span></label>
+                        <select id="dietPlanCategory" required style="width:100%;padding:0.75rem;border:1px solid var(--border);border-radius:8px;background:var(--surface-light);color:var(--text-dark);font-size:0.9rem;appearance:none;">
+                            <option value="">Select category...</option>
+                            <option value="General">🌐 General (Everyone)</option>
+                            <option value="Weight Loss">🔥 Weight Loss</option>
+                            <option value="Weight Gain">💪 Weight Gain</option>
+                            <option value="Individual">👤 Individual Member</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Individual member picker (shown only when Individual is selected) -->
+                <div id="dietIndividualPicker" style="display:none;margin-bottom:1rem;">
+                    <label style="display:block;font-weight:600;font-size:0.82rem;margin-bottom:0.4rem;color:var(--text-dark);">Assign to Member <span style="color:var(--primary);">*</span></label>
+                    <select id="dietTargetPlayer" style="width:100%;padding:0.75rem;border:1px solid var(--border);border-radius:8px;background:var(--surface-light);color:var(--text-dark);font-size:0.9rem;appearance:none;">
+                        <option value="">Select member...</option>
+                    </select>
+                </div>
+
+                <div style="margin-bottom:1rem;">
+                    <label style="display:block;font-weight:600;font-size:0.82rem;margin-bottom:0.4rem;color:var(--text-dark);">Plan Description / Details <span style="color:var(--primary);">*</span></label>
+                    <textarea id="dietPlanDescription" rows="5" required placeholder="Write the full diet plan here...&#10;e.g.&#10;Breakfast: Oats + 2 eggs&#10;Lunch: Chicken + salad&#10;Dinner: Dal rice + veggies" style="width:100%;padding:0.75rem;border:1px solid var(--border);border-radius:8px;background:var(--surface-light);color:var(--text-dark);font-size:0.9rem;resize:vertical;font-family:inherit;"></textarea>
+                </div>
+
+                <div style="margin-bottom:1.25rem;">
+                    <label style="display:block;font-weight:600;font-size:0.82rem;margin-bottom:0.4rem;color:var(--text-dark);">Attach File (PDF / Image — Optional)</label>
+                    <input type="file" id="dietPlanFile" accept=".pdf,image/*" style="width:100%;padding:0.65rem;border:1px solid var(--border);border-radius:8px;background:white;font-size:0.9rem;">
+                </div>
+
+                <div id="dietPlanFormMsg" style="display:none;margin-bottom:0.75rem;padding:0.75rem;border-radius:8px;text-align:center;font-size:0.875rem;"></div>
+                <button type="submit" class="btn btn-primary btn-full"><i class="fa-solid fa-plus"></i> Add Diet Plan</button>
+            </form>
+
+            <!-- Filter Tabs -->
+            <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:1rem;" id="dietFilterTabs">
+                <button class="btn btn-sm btn-primary diet-filter-btn active" data-filter="All">All</button>
+                <button class="btn btn-sm btn-outline-primary diet-filter-btn" data-filter="General">🌐 General</button>
+                <button class="btn btn-sm btn-outline-primary diet-filter-btn" data-filter="Weight Loss">🔥 Weight Loss</button>
+                <button class="btn btn-sm btn-outline-primary diet-filter-btn" data-filter="Weight Gain">💪 Weight Gain</button>
+                <button class="btn btn-sm btn-outline-primary diet-filter-btn" data-filter="Individual">👤 Individual</button>
+            </div>
+
+            <!-- Existing Plans -->
+            <div id="dietPlansList" style="max-height:380px;overflow-y:auto;">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== TRAINING MONITOR MODAL ===== -->
+    <div class="qr-modal" id="trainingMonitorModal">
+        <div class="qr-modal-content" style="max-width: 900px; width: 95%;">
+            <span class="close-modal" id="closeTrainingMonitorModal">&times;</span>
+            <h3 class="section-title text-center mt-0" style="display:flex;align-items:center;justify-content:center;gap:0.5rem;">
+                <i class="fa-solid fa-dumbbell" style="color:var(--primary);"></i> Training Monitor
+            </h3>
+            <p class="text-center text-muted mb-3" style="font-size:0.88rem;">View and analyze all member training logs.</p>
+
+            <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1rem;align-items:center;">
+                <div style="flex:1;min-width:180px;">
+                    <label style="font-size:0.82rem;font-weight:600;color:var(--text-muted);display:block;margin-bottom:0.3rem;">Filter by Member</label>
+                    <select id="tmMemberFilter" style="width:100%;padding:0.6rem;border:1px solid var(--border);border-radius:8px;background:var(--surface-light);color:var(--text-dark);font-size:0.9rem;">
+                        <option value="All">All Members</option>
+                    </select>
+                </div>
+                <div style="flex:1;min-width:150px;">
+                    <label style="font-size:0.82rem;font-weight:600;color:var(--text-muted);display:block;margin-bottom:0.3rem;">Date Range</label>
+                    <select id="tmDateFilter" style="width:100%;padding:0.6rem;border:1px solid var(--border);border-radius:8px;background:var(--surface-light);color:var(--text-dark);font-size:0.9rem;">
+                        <option value="7">Last 7 Days</option>
+                        <option value="30">Last 30 Days</option>
+                        <option value="all">All Time</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Summary Stats -->
+            <div class="tp-stat-grid" id="tmStatGrid"></div>
+
+            <!-- Chart -->
+            <div style="background:var(--bg-light);border:1px solid var(--border);border-radius:12px;padding:1rem;margin-bottom:1rem;">
+                <h5 style="font-size:0.9rem;font-weight:700;margin:0 0 0.75rem;">Training Activity (Weekly Punches + Kicks)</h5>
+                <div class="tp-chart-container"><canvas id="tmActivityChart"></canvas></div>
+            </div>
+
+            <!-- Log Table -->
+            <div class="table-responsive" style="max-height:300px;overflow-y:auto;">
+                <table class="table" id="tmLogsTable">
+                    <thead>
+                        <tr>
+                            <th>Date</th><th>Member</th><th>Punches</th><th>Kicks</th><th>Conditioning</th><th>Bag Rounds</th><th>Sparring</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== SKILL EVALUATION MODAL ===== -->
+    <div class="qr-modal" id="skillEvalModal">
+        <div class="qr-modal-content" style="max-width: 620px; width: 95%;">
+            <span class="close-modal" id="closeSkillEvalModal">&times;</span>
+            <h3 class="section-title text-center mt-0" style="display:flex;align-items:center;justify-content:center;gap:0.5rem;">
+                <i class="fa-solid fa-star" style="color:#FFD700;"></i> Skill Evaluation
+            </h3>
+            <p class="text-center text-muted mb-3" style="font-size:0.88rem;">Rate and provide feedback on a member's skills.</p>
+
+            <form id="skillEvalForm" style="background:var(--bg-light);border:1px solid var(--border);border-radius:12px;padding:1.25rem;">
+                <div style="margin-bottom:1rem;">
+                    <label style="font-size:0.82rem;font-weight:600;color:var(--text-muted);display:block;margin-bottom:0.3rem;">Select Member</label>
+                    <select id="evalMemberSelect" required style="width:100%;padding:0.75rem;border:1px solid var(--border);border-radius:8px;background:var(--surface-light);color:var(--text-dark);font-size:0.9rem;">
+                        <option value="">Select a member...</option>
+                    </select>
+                </div>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:1rem;">
+                    <div class="tp-input-group">
+                        <label>Punch Technique (1-5)</label>
+                        <input type="number" id="evalPunch" min="1" max="5" value="3" required>
+                    </div>
+                    <div class="tp-input-group">
+                        <label>Kick Technique (1-5)</label>
+                        <input type="number" id="evalKick" min="1" max="5" value="3" required>
+                    </div>
+                    <div class="tp-input-group">
+                        <label>Speed (1-5)</label>
+                        <input type="number" id="evalSpeed" min="1" max="5" value="3" required>
+                    </div>
+                    <div class="tp-input-group">
+                        <label>Defense (1-5)</label>
+                        <input type="number" id="evalDefense" min="1" max="5" value="3" required>
+                    </div>
+                    <div class="tp-input-group" style="grid-column:1/-1;">
+                        <label>Stamina (1-5)</label>
+                        <input type="number" id="evalStamina" min="1" max="5" value="3" required>
+                    </div>
+                </div>
+
+                <div style="margin-bottom:1rem;">
+                    <label style="font-size:0.82rem;font-weight:600;color:var(--text-muted);display:block;margin-bottom:0.3rem;">Coach Comment</label>
+                    <textarea id="evalComment" rows="3" placeholder="Overall performance notes..." style="width:100%;padding:0.75rem;border:1px solid var(--border);border-radius:8px;background:var(--surface-light);color:var(--text-dark);font-size:0.9rem;font-family:inherit;resize:vertical;"></textarea>
+                </div>
+                <div style="margin-bottom:1.25rem;">
+                    <label style="font-size:0.82rem;font-weight:600;color:var(--text-muted);display:block;margin-bottom:0.3rem;">Improvement Suggestions</label>
+                    <textarea id="evalSuggestions" rows="2" placeholder="Areas to work on..." style="width:100%;padding:0.75rem;border:1px solid var(--border);border-radius:8px;background:var(--surface-light);color:var(--text-dark);font-size:0.9rem;font-family:inherit;resize:vertical;"></textarea>
+                </div>
+                <div id="evalFormMsg" style="display:none;margin-bottom:0.75rem;padding:0.75rem;border-radius:8px;font-size:0.875rem;text-align:center;"></div>
+                <button type="submit" class="btn btn-primary btn-full"><i class="fa-solid fa-star"></i> Save Evaluation</button>
+            </form>
+
+            <!-- All Evaluations -->
+            <div id="allEvalsContainer" style="margin-top:1.25rem;max-height:280px;overflow-y:auto;"></div>
+        </div>
+    </div>
+
+    <!-- ===== PROGRESS REPORTS MODAL ===== -->
+    <div class="qr-modal" id="reportsModal">
+        <div class="qr-modal-content" style="max-width: 880px; width: 95%;">
+            <span class="close-modal" id="closeReportsModal">&times;</span>
+            <h3 class="section-title text-center mt-0" style="display:flex;align-items:center;justify-content:center;gap:0.5rem;">
+                <i class="fa-solid fa-chart-bar" style="color:var(--primary);"></i> Progress Reports
+            </h3>
+
+            <div class="tp-tab-pills" style="justify-content:center;">
+                <button class="tp-tab-pill active" data-report="weekly" id="reportWeeklyBtn">📅 Weekly Report</button>
+                <button class="tp-tab-pill" data-report="monthly" id="reportMonthlyBtn">📆 Monthly Report</button>
+            </div>
+
+            <div class="tp-stat-grid" id="reportStatGrid"></div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+                <div style="background:var(--bg-light);border:1px solid var(--border);border-radius:12px;padding:1rem;">
+                    <h5 style="font-size:0.88rem;font-weight:700;margin:0 0 0.75rem;">Punch Training</h5>
+                    <div class="tp-chart-container"><canvas id="reportPunchChart"></canvas></div>
+                </div>
+                <div style="background:var(--bg-light);border:1px solid var(--border);border-radius:12px;padding:1rem;">
+                    <h5 style="font-size:0.88rem;font-weight:700;margin:0 0 0.75rem;">Kick Training</h5>
+                    <div class="tp-chart-container"><canvas id="reportKickChart"></canvas></div>
+                </div>
+                <div style="background:var(--bg-light);border:1px solid var(--border);border-radius:12px;padding:1rem;">
+                    <h5 style="font-size:0.88rem;font-weight:700;margin:0 0 0.75rem;">Conditioning</h5>
+                    <div class="tp-chart-container"><canvas id="reportCondChart"></canvas></div>
+                </div>
+                <div style="background:var(--bg-light);border:1px solid var(--border);border-radius:12px;padding:1rem;">
+                    <h5 style="font-size:0.88rem;font-weight:700;margin:0 0 0.75rem;">Training Days</h5>
+                    <div class="tp-chart-container"><canvas id="reportDaysChart"></canvas></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== LEADERBOARD MODAL ===== -->
+    <div class="qr-modal" id="leaderboardModal">
+        <div class="qr-modal-content" style="max-width: 720px; width: 95%;">
+            <span class="close-modal" id="closeLeaderboardModal">&times;</span>
+            <h3 class="section-title text-center mt-0" style="display:flex;align-items:center;justify-content:center;gap:0.5rem;">
+                <i class="fa-solid fa-trophy" style="color:#FFD700;"></i> Leaderboard
+            </h3>
+
+            <div class="tp-tab-pills" style="justify-content:center;">
+                <button class="tp-tab-pill active" data-lb="punches">🥊 Punches</button>
+                <button class="tp-tab-pill" data-lb="kicks">🦵 Kicks</button>
+                <button class="tp-tab-pill" data-lb="conditioning">💪 Conditioning</button>
+                <button class="tp-tab-pill" data-lb="active">🔥 Most Active</button>
+            </div>
+
+            <div id="leaderboardContainer"></div>
+        </div>
+    </div>
+
+    <!-- ===== CHALLENGES MODAL ===== -->
+    <div class="qr-modal" id="challengesModal">
+        <div class="qr-modal-content" style="max-width: 720px; width: 95%;">
+            <span class="close-modal" id="closeChallengesModal">&times;</span>
+            <h3 class="section-title text-center mt-0" style="display:flex;align-items:center;justify-content:center;gap:0.5rem;">
+                <i class="fa-solid fa-fire" style="color:var(--primary);"></i> Training Challenges
+            </h3>
+
+            <form id="addChallengeForm" style="background:var(--bg-light);border:1px solid var(--border);border-radius:12px;padding:1.25rem;margin-bottom:1.5rem;">
+                <h4 style="margin:0 0 1rem;font-size:1rem;">Create New Challenge</h4>
+                <div style="display:grid;grid-template-columns:2fr 1fr;gap:1rem;margin-bottom:1rem;">
+                    <div class="tp-input-group">
+                        <label>Challenge Title</label>
+                        <input type="text" id="chalTitle" placeholder="e.g. 1000 Kick Challenge" required>
+                    </div>
+                    <div class="tp-input-group">
+                        <label>Type</label>
+                        <select id="chalType" style="width:100%;padding:0.6rem;border:1px solid var(--border);border-radius:8px;background:var(--surface-light);color:var(--text-dark);" required>
+                            <option value="punches">🥊 Punches</option>
+                            <option value="kicks">🦵 Kicks</option>
+                            <option value="conditioning">💪 Conditioning</option>
+                            <option value="streak">🔥 Training Streak (Days)</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="display:grid;grid-template-columns:2fr 1fr;gap:1rem;margin-bottom:1rem;">
+                    <div class="tp-input-group">
+                        <label>Description</label>
+                        <input type="text" id="chalDesc" placeholder="Describe the challenge..." required>
+                    </div>
+                    <div class="tp-input-group">
+                        <label>Target Count</label>
+                        <input type="number" id="chalTarget" placeholder="e.g. 1000" min="1" required>
+                    </div>
+                </div>
+                <div id="chalFormMsg" style="display:none;margin-bottom:0.75rem;padding:0.75rem;border-radius:8px;font-size:0.875rem;text-align:center;"></div>
+                <button type="submit" class="btn btn-primary btn-full"><i class="fa-solid fa-plus"></i> Create Challenge</button>
+            </form>
+
+            <h5 style="font-size:0.95rem;font-weight:700;margin-bottom:0.75rem;">Active Challenges</h5>
+            <div id="challengesList"></div>
+        </div>
+    </div>
+
+    <!-- ===== TRAINING NOTIFICATIONS MODAL ===== -->
+    <div class="qr-modal" id="trainingNotifModal">
+        <div class="qr-modal-content" style="max-width: 680px; width: 95%;">
+            <span class="close-modal" id="closeTrainingNotifModal">&times;</span>
+            <h3 class="section-title text-center mt-0" style="display:flex;align-items:center;justify-content:center;gap:0.5rem;">
+                <i class="fa-solid fa-bell" style="color:var(--primary);"></i> Training Alerts
+            </h3>
+            <p class="text-center text-muted mb-3" style="font-size:0.88rem;">Send in-app training reminders and updates to members.</p>
+
+            <form id="addTrainingNotifForm" style="background:var(--bg-light);border:1px solid var(--border);border-radius:12px;padding:1.25rem;margin-bottom:1.5rem;">
+                <div style="display:grid;grid-template-columns:2fr 1fr;gap:1rem;margin-bottom:1rem;">
+                    <div class="tp-input-group">
+                        <label>Notification Title</label>
+                        <input type="text" id="tNotifTitle" placeholder="e.g. Training Reminder" required>
+                    </div>
+                    <div class="tp-input-group">
+                        <label>Send To</label>
+                        <select id="tNotifAudience" style="width:100%;padding:0.6rem;border:1px solid var(--border);border-radius:8px;background:var(--surface-light);color:var(--text-dark);">
+                            <option value="All">All Members</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="margin-bottom:1rem;">
+                    <label style="font-size:0.78rem;font-weight:600;color:var(--text-muted);display:block;margin-bottom:0.3rem;">Message</label>
+                    <textarea id="tNotifMessage" rows="3" placeholder="Type your message..." required style="width:100%;padding:0.75rem;border:1px solid var(--border);border-radius:8px;background:var(--surface-light);color:var(--text-dark);font-size:0.9rem;font-family:inherit;resize:vertical;"></textarea>
+                </div>
+                <div id="tNotifFormMsg" style="display:none;margin-bottom:0.75rem;padding:0.75rem;border-radius:8px;font-size:0.875rem;text-align:center;"></div>
+                <button type="submit" class="btn btn-primary btn-full"><i class="fa-solid fa-paper-plane"></i> Send Notification</button>
+            </form>
+
+            <h5 style="font-size:0.95rem;font-weight:700;margin-bottom:0.75rem;">Sent Notifications</h5>
+            <div id="sentNotifsList" style="max-height:280px;overflow-y:auto;"></div>
+        </div>
+    </div>
+
+</body>
+</html>

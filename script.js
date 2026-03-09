@@ -1,0 +1,175 @@
+document.addEventListener('DOMContentLoaded', () => {
+    // ---- Dark Mode Toggle ----
+    const darkToggleBtn = document.getElementById('darkModeToggle');
+    const darkModeIcon = document.getElementById('darkModeIcon');
+
+    const applyDarkMode = (isDark) => {
+        document.body.classList.toggle('dark-mode', isDark);
+        if (darkModeIcon) {
+            darkModeIcon.className = isDark ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+        }
+    };
+
+    // Restore saved preference
+    const savedTheme = localStorage.getItem('landingTheme');
+    if (savedTheme === 'dark') applyDarkMode(true);
+
+    if (darkToggleBtn) {
+        darkToggleBtn.addEventListener('click', () => {
+            const isDark = document.body.classList.toggle('dark-mode');
+            localStorage.setItem('landingTheme', isDark ? 'dark' : 'light');
+            if (darkModeIcon) {
+                darkModeIcon.className = isDark ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+            }
+        });
+    }
+
+    // ---- Carousel Functionality ----
+
+    const track = document.querySelector('.carousel-track');
+    const dotsContainer = document.querySelector('.carousel-dots');
+    
+    // Load banners from DB
+    const banners = typeof Database !== 'undefined' ? Database.getBanners() : [];
+    
+    if (banners.length > 0 && track && dotsContainer) {
+        track.innerHTML = banners.map(b => `
+            <div class="slide" style="background-image: linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0.2)), url('${b.url}'); ${b.redirectUrl && b.redirectUrl !== '#' ? 'cursor: pointer;' : ''}" ${b.redirectUrl && b.redirectUrl !== '#' ? `onclick="window.location.href='${b.redirectUrl}'"` : ''}>
+                <div class="slide-content">
+                    <h2>${b.title}</h2>
+                    <p>${b.subtitle}</p>
+                </div>
+            </div>
+        `).join('');
+        
+        dotsContainer.innerHTML = banners.map((b, i) => `
+            <span class="dot ${i === 0 ? 'active' : ''}"></span>
+        `).join('');
+    }
+
+    const slides = document.querySelectorAll('.slide');
+    const dots = document.querySelectorAll('.dot');
+    let currentIndex = 0;
+    const slideCount = slides.length;
+    let autoSlideInterval;
+    
+    if (slideCount > 0) {
+        const goToSlide = (index) => {
+            track.style.transform = `translateX(-${index * 100}%)`;
+            dots.forEach(dot => dot.classList.remove('active'));
+            dots[index].classList.add('active');
+            currentIndex = index;
+        };
+
+        const nextSlide = () => {
+            let nextIndex = (currentIndex + 1) % slideCount;
+            goToSlide(nextIndex);
+        };
+
+        const startAutoSlide = () => {
+            autoSlideInterval = setInterval(nextSlide, 3000);
+        };
+
+        const stopAutoSlide = () => {
+            clearInterval(autoSlideInterval);
+        };
+
+        // Dot clicks
+        dots.forEach((dot, index) => {
+            dot.addEventListener('click', () => {
+                stopAutoSlide();
+                goToSlide(index);
+                startAutoSlide();
+            });
+        });
+
+        startAutoSlide();
+
+        // Touch Swipe for Mobile Carousel
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        track.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+            stopAutoSlide();
+        }, {passive: true});
+
+        track.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+            startAutoSlide();
+        }, {passive: true});
+
+        const handleSwipe = () => {
+            if (touchEndX < touchStartX - 50) {
+                nextSlide(); // Swipe left
+            }
+            if (touchEndX > touchStartX + 50) {
+                let prevIndex = (currentIndex - 1 + slideCount) % slideCount;
+                goToSlide(prevIndex); // Swipe right
+            }
+        };
+    }
+
+
+    // ---- Scroll Animations ----
+    const fadeElements = document.querySelectorAll('.fade-element');
+    
+    // Intersection Observer to add 'visible' class when elements enter viewport
+    const observerOptions = {
+        root: null,
+        rootMargin: '0px',
+        threshold: 0.15
+    };
+
+    const scrollObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+                observer.unobserve(entry.target); // Stop observing once visible
+            }
+        });
+    }, observerOptions);
+
+    fadeElements.forEach(el => scrollObserver.observe(el));
+
+    // ---- Load Events Dynamically ----
+    const publicEventsContainer = document.getElementById('publicEventsContainer');
+    if (publicEventsContainer && typeof Database !== 'undefined') {
+        const events = Database.getEvents().sort((a, b) => new Date(a.date) - new Date(b.date));
+
+        // Force-show the parent events section (it has fade-element class)
+        const eventsSection = publicEventsContainer.closest('section');
+        if (eventsSection) eventsSection.classList.add('visible');
+
+        if (events.length === 0) {
+            publicEventsContainer.innerHTML = `
+                <div style="grid-column: 1 / -1; text-align: center; padding: 2rem; color: var(--text-muted);">
+                    <i class="fa-regular fa-calendar-xmark fa-3x" style="margin-bottom: 1rem; opacity: 0.4; display:block;"></i>
+                    <p>No upcoming events. Check back soon!</p>
+                </div>`;
+        } else {
+            publicEventsContainer.innerHTML = events.map(ev => {
+                const dateObj = new Date(ev.date);
+                const dateStr = dateObj.toLocaleDateString('default', { month: 'short', day: 'numeric', year: 'numeric' });
+                const feeStr = ev.requiresPayment
+                    ? `<span style="background:var(--primary); color:#fff; padding:0.2rem 0.6rem; border-radius:20px; font-size:0.8rem; font-weight:600;">Fee: ₹${ev.fee}</span>`
+                    : `<span style="background:#16a34a; color:#fff; padding:0.2rem 0.6rem; border-radius:20px; font-size:0.8rem; font-weight:600;">Free Entry</span>`;
+
+                return `
+                <div class="card event-card" style="overflow:hidden; opacity:1; transform:none;">
+                    <img src="${ev.bannerUrl}" alt="${ev.title}" style="width:100%; height:180px; object-fit:cover; display:block;">
+                    <div class="card-content">
+                        <div class="event-meta" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+                            <span><i class="fa-regular fa-calendar"></i> ${dateStr}</span>
+                            ${feeStr}
+                        </div>
+                        <h3 style="margin-bottom:0.5rem;">${ev.title}</h3>
+                        <p style="font-size:0.88rem; color:var(--text-muted); margin-bottom:1rem; line-height:1.5;">${ev.description}</p>
+                        <a href="login.html" class="btn btn-outline btn-full">Register Now</a>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+    }
+});

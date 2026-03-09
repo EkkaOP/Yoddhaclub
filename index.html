@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yoddha Club</title>
+    <!-- Modern Font: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Header Section -->
+    <header class="sticky-header">
+        <div class="logo">
+            <img src="logo.png" alt="Yoddha Club Logo" class="club-logo">
+            <span>Yoddha Club</span>
+        </div>
+        <div class="header-actions">
+            <button id="darkModeToggle" class="dark-toggle-btn" title="Toggle Dark Mode">
+                <i class="fa-solid fa-moon" id="darkModeIcon"></i>
+            </button>
+            <a href="login.html" class="btn btn-text">Login</a>
+        </div>
+    </header>
+
+    <main>
+        <!-- Sliding Banner Section -->
+        <section class="banner-section fade-element">
+            <div class="carousel-track">
+                <!-- Banners injected by JS -->
+            </div>
+            <div class="carousel-dots">
+                <!-- Dots injected by JS -->
+            </div>
+        </section>
+
+        <!-- Coaches Section -->
+        <section class="section coaches-section fade-element">
+            <h2 class="section-title">Our Coaches</h2>
+            <div class="horizontal-scroll">
+                <div class="card coach-card">
+                    <img src="https://images.unsplash.com/photo-1594381898411-846e7d193883?auto=format&fit=crop&q=80&w=400" alt="Coach Marcus">
+                    <div class="card-content">
+                        <h3>Marcus Johnson</h3>
+                        <p class="specialty">Strength & Conditioning</p>
+                        <p class="desc">10+ years experience in professional athletic training.</p>
+                    </div>
+                </div>
+                <div class="card coach-card">
+                    <img src="https://images.unsplash.com/photo-1548690312-e3b507d8c110?auto=format&fit=crop&q=80&w=400" alt="Coach Sarah">
+                    <div class="card-content">
+                        <h3>Sarah Wei</h3>
+                        <p class="specialty">Yoga & Flexibility</p>
+                        <p class="desc">Certified Ashtanga instructor focusing on mobility.</p>
+                    </div>
+                </div>
+                <div class="card coach-card">
+                    <img src="https://images.unsplash.com/photo-1581646743122-86105f9bf35a?auto=format&fit=crop&q=80&w=400" alt="Coach David">
+                    <div class="card-content">
+                        <h3>David Miller</h3>
+                        <p class="specialty">CrossFit Expert</p>
+                        <p class="desc">Former competitive athlete ready to push your boundaries.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Events Section -->
+        <section class="section events-section" style="opacity:1; transform:none;">
+            <h2 class="section-title">Upcoming Events</h2>
+            <div class="cards-grid" id="publicEventsContainer">
+                <!-- Dynamically populated from the database -->
+            </div>
+        </section>
+
+        <!-- Champions Section -->
+        <section class="section champions-section fade-element">
+            <h2 class="section-title">Our Champions</h2>
+            <div class="horizontal-scroll">
+                <div class="card champion-card">
+                    <img src="https://images.unsplash.com/photo-1526506114642-54bc0837f42c?auto=format&fit=crop&q=80&w=400" alt="Champion Elena">
+                    <div class="champ-badge"><i class="fa-solid fa-trophy"></i></div>
+                    <div class="card-content">
+                        <h3>Elena Rodriguez</h3>
+                        <p class="achievement">State Powerlifting Champion</p>
+                    </div>
+                </div>
+                <div class="card champion-card">
+                    <img src="https://images.unsplash.com/photo-1554284126-aa88f22d8b74?auto=format&fit=crop&q=80&w=400" alt="Champion James">
+                    <div class="champ-badge"><i class="fa-solid fa-award"></i></div>
+                    <div class="card-content">
+                        <h3>James Wilson</h3>
+                        <p class="achievement">Triathlon Winner 2023</p>
+                    </div>
+                </div>
+                <div class="card champion-card">
+                    <img src="https://images.unsplash.com/photo-1620882193910-61f623631fca?auto=format&fit=crop&q=80&w=400" alt="Champion Chloe">
+                    <div class="champ-badge"><i class="fa-solid fa-medal"></i></div>
+                    <div class="card-content">
+                        <h3>Chloe Carter</h3>
+                        <p class="achievement">National Gymnast</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Location Section -->
+        <section class="section location-section fade-element">
+            <h2 class="section-title">Our Location</h2>
+            <div class="card location-card">
+                <div class="map-container">
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3022.99!2d-73.987!3d40.748!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNDDCsDQ0JzUzLjQiTiA3M8KwNTknMTMuMiJX!5e0!3m2!1sen!2sus!4v1620000000000!5m2!1sen!2sus" width="100%" height="250" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+                </div>
+                <div class="card-content">
+                    <p class="address"><i class="fa-solid fa-map-pin"></i> 123 Fitness Blvd, Downtown CA</p>
+                    <button class="btn btn-primary btn-full"><i class="fa-solid fa-location-arrow"></i> Get Directions</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-links">
+            <a href="#">About Club</a>
+            <a href="#">Contact</a>
+            <a href="#">Privacy Policy</a>
+        </div>
+        <div class="social-icons">
+            <a href="#"><i class="fa-brands fa-instagram"></i></a>
+            <a href="#"><i class="fa-brands fa-twitter"></i></a>
+            <a href="#"><i class="fa-brands fa-facebook"></i></a>
+        </div>
+        <div class="copyright">
+            &copy; 2026 Club Manager. All rights reserved.
+        </div>
+    </footer>
+
+    <script src="db.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
