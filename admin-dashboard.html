@@ -25,6 +25,7 @@
             <a href="#" class="nav-item" id="openAddMemberNav"><i class="fa-solid fa-user-plus"></i> Add Member</a>
             <a href="#" class="nav-item" id="openManageMembersNav"><i class="fa-solid fa-users"></i> Manage Members</a>
             <a href="#" class="nav-item" id="openManageCoachesNav"><i class="fa-solid fa-dumbbell"></i> Manage Coaches</a>
+            <a href="#" class="nav-item" id="openManageOurPlayersNav"><i class="fa-solid fa-star"></i> Our Players</a>
             <a href="#" class="nav-item" id="openManageBannersNav"><i class="fa-regular fa-images"></i> Manage Banners</a>
             <a href="#" class="nav-item" id="openManageAnnouncementsNav"><i class="fa-solid fa-bullhorn"></i> Announcements</a>
             <a href="#" class="nav-item" id="openManageBatchesNav"><i class="fa-solid fa-clock"></i> Manage Batches</a>
@@ -297,7 +298,7 @@
                     </div>
                     <div class="form-group" style="flex: 1; min-width: 200px; margin-bottom: 0;">
                         <label for="newMemberPhoto" style="display: block; font-weight: 500; margin-bottom: 0.5rem; font-size: 0.9rem;">Profile Photo</label>
-                        <input type="file" id="newMemberPhoto" accept="image/*" style="width: 100%; padding: 0.875rem; border: 1px solid var(--border); border-radius: 12px; background: white; color: var(--text-dark); font-size: 1rem;">
+                        <input type="file" id="newMemberPhoto" accept="image/*" style="width: 100%; padding: 0.875rem; border: 1px solid var(--border); border-radius: 12px; background: var(--bg-light); color: var(--text-dark); font-size: 1rem;">
                     </div>
                 </div>
                 
@@ -316,6 +317,7 @@
             <div class="mb-3" style="display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap;" id="memberFilters">
                 <button class="btn btn-sm btn-primary filter-btn active" data-filter="All">All Members</button>
                 <button class="btn btn-sm btn-outline-primary filter-btn" data-filter="Live">Live Members</button>
+                <button class="btn btn-sm btn-outline-primary filter-btn" data-filter="Expiring Soon">Expiring Soon</button>
                 <button class="btn btn-sm btn-outline-primary filter-btn" data-filter="Expired">Expired Members</button>
                 <button class="btn btn-sm btn-outline-primary filter-btn" data-filter="Left">Left Members</button>
             </div>
@@ -387,7 +389,7 @@
                 <h4 style="margin-bottom: 1rem; font-size: 1rem;">Add New Banner</h4>
                 <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
                     <div class="form-group" style="flex: 1; min-width: 200px; margin-bottom: 0;">
-                        <input type="file" id="newBannerImage" accept="image/*" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; background: white;" title="Upload Image File">
+                        <input type="file" id="newBannerImage" accept="image/*" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-light); color: var(--text-dark);" title="Upload Image File">
                     </div>
                     <div style="display: flex; align-items: center; justify-content: center; padding: 0.5rem; color: var(--text-light); font-weight: 500;">OR</div>
                     <div class="form-group" style="flex: 1; min-width: 200px; margin-bottom: 0;">
@@ -444,7 +446,7 @@
                         <input type="text" id="newAnnTitle" placeholder="Announcement Title" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px;">
                     </div>
                     <div class="form-group" style="flex: 1; min-width: 150px; margin-bottom: 0;">
-                        <select id="newAnnAudience" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; appearance: none; background: white;">
+                        <select id="newAnnAudience" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; appearance: none; background: var(--bg-light); color: var(--text-dark);">
                             <option value="">Select Target Audience...</option>
                             <option value="All Members">All Members</option>
                             <option value="Expired Members">Expired Members</option>
@@ -460,7 +462,7 @@
                 <div style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;">
                     <div class="form-group" style="flex: 2; margin-bottom: 0;">
                         <label for="newAnnImage" style="display: block; font-weight: 500; font-size: 0.8rem; margin-bottom: 0.5rem;">Attach Photo/Banner (Optional)</label>
-                        <input type="file" id="newAnnImage" accept="image/*" style="width: 100%; padding: 0.65rem; border: 1px solid var(--border); border-radius: 8px; background: white; font-size: 0.9rem;">
+                        <input type="file" id="newAnnImage" accept="image/*" style="width: 100%; padding: 0.65rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-light); color: var(--text-dark); font-size: 0.9rem;">
                     </div>
                     <div style="flex: 1; min-width: 120px;">
                         <button type="submit" class="btn btn-primary" style="width: 100%;"><i class="fa-solid fa-paper-plane"></i> Post</button>
@@ -513,7 +515,7 @@
                 <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; align-items: center;">
                     <div class="form-group" style="flex: 1; min-width: 200px; margin-bottom: 0;">
                         <label style="display: block; font-weight: 500; font-size: 0.8rem; margin-bottom: 0.5rem;">Event Banner (Mandatory)</label>
-                        <input type="file" id="newEventBanner" accept="image/*" required style="width: 100%; padding: 0.65rem; border: 1px solid var(--border); border-radius: 8px; background: white; font-size: 0.9rem;">
+                        <input type="file" id="newEventBanner" accept="image/*" required style="width: 100%; padding: 0.65rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-light); color: var(--text-dark); font-size: 0.9rem;">
                     </div>
                     <div style="flex: 1; display: flex; gap: 1rem; align-items: center;">
                         <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
@@ -526,7 +528,7 @@
                 <div id="extendedPaymentDetails" style="display: none; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; padding: 1rem; background: var(--surface-light); border-radius: 8px; border: 1px dashed var(--border);">
                     <div class="form-group" style="flex: 1; min-width: 200px; margin-bottom: 0;">
                         <label style="display: block; font-weight: 500; font-size: 0.8rem; margin-bottom: 0.5rem;">Payment QR Code (Optional)</label>
-                        <input type="file" id="newEventPaymentQr" accept="image/*" style="width: 100%; padding: 0.65rem; border: 1px solid var(--border); border-radius: 8px; background: white; font-size: 0.9rem;">
+                        <input type="file" id="newEventPaymentQr" accept="image/*" style="width: 100%; padding: 0.65rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-light); color: var(--text-dark); font-size: 0.9rem;">
                     </div>
                     <div class="form-group" style="flex: 1; min-width: 200px; margin-bottom: 0;">
                         <label style="display: block; font-weight: 500; font-size: 0.8rem; margin-bottom: 0.5rem;">UPI ID (Optional)</label>
@@ -537,7 +539,10 @@
                 <button type="submit" class="btn btn-primary btn-full"><i class="fa-solid fa-plus"></i> Create Event</button>
             </form>
             
-            <h4 style="margin-top: 1.5rem; margin-bottom: 1rem; font-size: 1.1rem; border-bottom: 2px solid var(--border); padding-bottom: 0.5rem;">Active Events</h4>
+            <div style="display: flex; gap: 0.5rem; margin-top: 1.5rem; margin-bottom: 1rem; border-bottom: 2px solid var(--border); padding-bottom: 0.5rem;">
+                <button class="btn btn-sm btn-primary event-tab-btn active" data-tab="upcoming">Upcoming Events</button>
+                <button class="btn btn-sm btn-outline-primary event-tab-btn" data-tab="past">Past Events</button>
+            </div>
             <div class="table-responsive" style="max-height: 350px; overflow-y: auto;">
                 <table class="table" id="allEventsTable">
                     <thead>
@@ -647,7 +652,7 @@
                 <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
                     <div class="form-group" style="flex: 2; min-width: 200px; margin-bottom: 0;">
                         <label for="paymentMemberId" style="display: block; font-weight: 500; margin-bottom: 0.5rem; font-size: 0.8rem;">Select Member</label>
-                        <select id="paymentMemberId" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; appearance: none; background: white;">
+                        <select id="paymentMemberId" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; appearance: none; background: var(--bg-light); color: var(--text-dark);">
                             <option value="">Select Member...</option>
                         </select>
                     </div>
@@ -659,14 +664,14 @@
                 <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1rem;">
                     <div class="form-group" style="flex: 1; min-width: 150px; margin-bottom: 0;">
                         <label for="paymentType" style="display: block; font-weight: 500; margin-bottom: 0.5rem; font-size: 0.8rem;">Payment Type</label>
-                        <select id="paymentType" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; appearance: none; background: white;">
+                        <select id="paymentType" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; appearance: none; background: var(--bg-light); color: var(--text-dark);">
                             <option value="Monthly">Monthly/Routine Fee</option>
                             <option value="Enrollment">Enrollment Fee (One-time)</option>
                         </select>
                     </div>
                     <div class="form-group" style="flex: 1; min-width: 150px; margin-bottom: 0;">
                         <label for="paymentMethod" style="display: block; font-weight: 500; margin-bottom: 0.5rem; font-size: 0.8rem;">Payment Method</label>
-                        <select id="paymentMethod" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; appearance: none; background: white;">
+                        <select id="paymentMethod" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; appearance: none; background: var(--bg-light); color: var(--text-dark);">
                             <option value="Cash">Cash</option>
                             <option value="UPI">UPI</option>
                             <option value="Card">Card</option>
@@ -776,6 +781,19 @@
                 <p id="adminProfileId" class="text-muted" style="margin-top: 5px;">CLUB-PLAYER-0000</p>
                 <p id="adminProfileMobile" class="text-muted" style="margin-top: 0;"><i class="fa-solid fa-phone" style="font-size: 0.8rem;"></i> <span id="adminProfilePhoneNum"></span></p>
 
+                <!-- Expiry Countdown Badge -->
+                <div id="adminProfileExpiryCountdown" style="display: none; margin-bottom: 1rem;">
+                    <span style="background: var(--primary); color: white; padding: 0.4rem 0.8rem; border-radius: 20px; font-size: 0.85rem; font-weight: 700; box-shadow: 0 2px 8px rgba(220,38,38,0.3);">
+                        <i class="fa-solid fa-clock"></i> <span id="adminProfileCountdownText"></span>
+                    </span>
+                </div>
+
+                <div style="display: flex; gap: 0.5rem; justify-content: center; margin-bottom: 1rem;">
+                    <button id="adminSendReminderBtn" class="btn btn-sm btn-outline-primary" style="border-radius: 20px; font-weight: 600; font-size: 0.8rem;">
+                        <i class="fa-solid fa-paper-plane"></i> Send Expiry Reminder
+                    </button>
+                </div>
+
                 <!-- Social Media Contact Buttons -->
                 <div id="adminSocialLinks" style="display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap;margin-bottom:0.5rem;"></div>
             </div>
@@ -815,21 +833,31 @@
                     <span class="text-muted font-weight-bold">Discount:</span>
                     <span id="adminProfileDiscount" class="font-weight-bold text-danger"></span>
                 </div>
+                <div style="display: flex; justify-content: space-between; margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border);">
+                    <span class="text-muted font-weight-bold">Expiry Date:</span>
+                    <span id="adminProfileExpiryDate" class="font-weight-bold text-dark"></span>
+                </div>
             </div>
 
             <!-- Documents Section -->
             <div class="profile-details mt-3" style="background: var(--bg-light); padding: 1rem; border-radius: var(--radius); border: 1px solid var(--border);">
-                <h5 style="margin-top: 0; margin-bottom: 0.75rem; font-size: 1rem; color: var(--text-dark);">Documents & PDF</h5>
+                <h5 style="margin-top: 0; margin-bottom: 0.75rem; font-size: 1rem; color: var(--text-dark);">Documents & Certificates</h5>
                 
-                <div id="adminProfileDocView" style="margin-bottom: 1rem; display: none;">
-                    <a id="adminProfileDocLink" href="#" download="Player_Document.pdf" class="btn btn-sm btn-outline" style="border-color: var(--primary); color: var(--primary); display: inline-flex; align-items: center; gap: 0.5rem;"><i class="fa-solid fa-file-pdf text-danger"></i> View / Download Document</a>
+                <!-- Document List Container -->
+                <div id="adminProfileDocList" style="margin-bottom: 1.25rem; display: flex; flex-direction: column; gap: 0.75rem;">
+                    <!-- Documents populated by JS -->
                 </div>
                 
-                <div id="adminProfileDocUpload">
-                    <label for="adminProfileDocFile" style="display: block; font-weight: 500; font-size: 0.8rem; margin-bottom: 0.5rem; color: var(--text-muted);">Upload or Replace Document (PDF/Image)</label>
+                <div id="adminProfileDocUpload" style="border-top: 1px solid var(--border); padding-top: 1rem;">
+                    <label style="display: block; font-weight: 500; font-size: 0.85rem; margin-bottom: 0.5rem; color: var(--text-dark);">Upload New Document</label>
+                    
+                    <div class="form-group" style="margin-bottom: 0.75rem;">
+                        <input type="text" id="adminProfileDocName" placeholder="Document Name (e.g. Aadhar Card, Medical Report)" style="width: 100%; padding: 0.65rem; border: 1px solid var(--border); border-radius: 8px; font-size: 0.85rem; background: var(--bg-light); color: var(--text-dark); border: 1px solid var(--border);">
+                    </div>
+                    
                     <div style="display: flex; gap: 0.5rem;">
-                        <input type="file" id="adminProfileDocFile" accept=".pdf,image/*" style="flex: 1; padding: 0.5rem; border: 1px solid var(--border); border-radius: 4px; background: white; font-size: 0.8rem;">
-                        <button id="adminProfileUploadBtn" class="btn btn-sm btn-primary" style="white-space: nowrap;">Upload</button>
+                        <input type="file" id="adminProfileDocFile" accept=".pdf,image/*" style="flex: 1; padding: 0.5rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-light); color: var(--text-dark); font-size: 0.85rem;">
+                        <button id="adminProfileUploadBtn" class="btn btn-sm btn-primary" style="white-space: nowrap; border-radius: 8px; padding: 0 1rem;">Upload</button>
                     </div>
                     <small id="adminProfileUploadMsg" class="text-success mt-1" style="display: none;"></small>
                 </div>
@@ -1087,7 +1115,7 @@
 
                 <div style="margin-bottom:1.25rem;">
                     <label style="display:block;font-weight:600;font-size:0.82rem;margin-bottom:0.4rem;color:var(--text-dark);">Attach File (PDF / Image — Optional)</label>
-                    <input type="file" id="dietPlanFile" accept=".pdf,image/*" style="width:100%;padding:0.65rem;border:1px solid var(--border);border-radius:8px;background:white;font-size:0.9rem;">
+                    <input type="file" id="dietPlanFile" accept=".pdf,image/*" style="width:100%;padding:0.65rem;border:1px solid var(--border);border-radius:8px;background:var(--bg-light);color:var(--text-dark);font-size:0.9rem;">
                 </div>
 
                 <div id="dietPlanFormMsg" style="display:none;margin-bottom:0.75rem;padding:0.75rem;border-radius:8px;text-align:center;font-size:0.875rem;"></div>
@@ -1386,22 +1414,22 @@
                 <!-- Revenue -->
                 <div style="background:var(--success-light);border:1px solid rgba(16,185,129,0.2);border-radius:12px;padding:1.25rem;">
                     <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
-                        <div style="width:36px;height:36px;border-radius:50%;background:rgba(16,185,129,0.15);display:flex;align-items:center;justify-content:center;color:#059669;">
+                        <div style="width:36px;height:36px;border-radius:50%;background:rgba(16,185,129,0.15);display:flex;align-items:center;justify-content:center;color:var(--success);">
                             <i class="fa-solid fa-arrow-trend-up"></i>
                         </div>
-                        <h4 style="margin:0;font-size:0.9rem;color:#059669;">Total Revenue</h4>
+                        <h4 style="margin:0;font-size:0.9rem;color:var(--success);">Total Revenue</h4>
                     </div>
-                    <h2 style="margin:0;font-size:1.8rem;color:#065f46;" id="financeSummaryRev">₹0</h2>
+                    <h2 style="margin:0;font-size:1.8rem;color:var(--success);" id="financeSummaryRev">₹0</h2>
                 </div>
                 <!-- Expenses -->
                 <div style="background:rgba(239,68,68,0.05);border:1px solid rgba(239,68,68,0.2);border-radius:12px;padding:1.25rem;">
                     <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
-                        <div style="width:36px;height:36px;border-radius:50%;background:rgba(239,68,68,0.15);display:flex;align-items:center;justify-content:center;color:#dc2626;">
+                        <div style="width:36px;height:36px;border-radius:50%;background:rgba(239,68,68,0.15);display:flex;align-items:center;justify-content:center;color:var(--primary);">
                             <i class="fa-solid fa-arrow-trend-down"></i>
                         </div>
-                        <h4 style="margin:0;font-size:0.9rem;color:#dc2626;">Total Expenses</h4>
+                        <h4 style="margin:0;font-size:0.9rem;color:var(--primary);">Total Expenses</h4>
                     </div>
-                    <h2 style="margin:0;font-size:1.8rem;color:#991b1b;" id="financeSummaryExp">₹0</h2>
+                    <h2 style="margin:0;font-size:1.8rem;color:var(--primary);" id="financeSummaryExp">₹0</h2>
                 </div>
                 <!-- Profit -->
                 <div style="background:var(--primary-light);border:1px solid rgba(220,38,38,0.2);border-radius:12px;padding:1.25rem;">
@@ -1411,7 +1439,7 @@
                         </div>
                         <h4 style="margin:0;font-size:0.9rem;color:var(--primary);">Net Profit</h4>
                     </div>
-                    <h2 style="margin:0;font-size:1.8rem;color:#991b1b;" id="financeSummaryProfit">₹0</h2>
+                    <h2 style="margin:0;font-size:1.8rem;color:var(--success);" id="financeSummaryProfit">₹0</h2>
                 </div>
             </div>
 
@@ -1484,6 +1512,48 @@
                 <div id="expenseFormMsg" style="display:none;margin-bottom:0.75rem;padding:0.75rem;border-radius:8px;font-size:0.875rem;text-align:center;"></div>
                 <button type="submit" class="btn btn-primary btn-full"><i class="fa-solid fa-check"></i> Save Expense</button>
             </form>
+        </div>
+    </div>
+    <!-- ===== MANAGE OUR PLAYERS MODAL ===== -->
+    <div class="qr-modal" id="manageOurPlayersModal">
+        <div class="qr-modal-content" style="max-width: 800px; width: 95%;">
+            <span class="close-modal" id="closeManageOurPlayersModal">&times;</span>
+            <h3 class="section-title text-center mt-0">Manage Our Players</h3>
+            <p class="text-center text-muted mb-3">Control the "Our Champions" section on the landing page.</p>
+
+            <form id="addOurPlayerForm" style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 2rem; background: var(--bg-light); padding: 1rem; border-radius: 12px; border: 1px solid var(--border);">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="tp-input-group">
+                        <label>Player Name</label>
+                        <input type="text" id="ourPlayerName" placeholder="e.g. John Wick" required style="width: 100%; padding: 0.6rem; border: 1px solid var(--border); border-radius: 8px;">
+                    </div>
+                    <div class="tp-input-group">
+                        <label>Achievement Title</label>
+                        <input type="text" id="ourPlayerAchievement" placeholder="e.g. State Level Winner" required style="width: 100%; padding: 0.6rem; border: 1px solid var(--border); border-radius: 8px;">
+                    </div>
+                </div>
+                <div class="tp-input-group">
+                    <label>Image URL (from Unsplash or direct link)</label>
+                    <input type="url" id="ourPlayerImageUrl" placeholder="https://example.com/photo.jpg" required style="width: 100%; padding: 0.6rem; border: 1px solid var(--border); border-radius: 8px;">
+                </div>
+                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Add Player to Section</button>
+            </form>
+
+            <div class="table-responsive">
+                <table class="table" id="ourPlayersTable">
+                    <thead>
+                        <tr>
+                            <th>Image</th>
+                            <th>Name</th>
+                            <th>Achievement</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ourPlayersTableBody">
+                        <!-- Populated via JS -->
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 

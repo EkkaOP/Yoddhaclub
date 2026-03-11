@@ -135,41 +135,79 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ---- Load Events Dynamically ----
     const publicEventsContainer = document.getElementById('publicEventsContainer');
-    if (publicEventsContainer && typeof Database !== 'undefined') {
-        const events = Database.getEvents().sort((a, b) => new Date(a.date) - new Date(b.date));
+    const publicPastEventsContainer = document.getElementById('publicPastEventsContainer');
+    const pastEventsSection = document.getElementById('pastEventsSection');
 
-        // Force-show the parent events section (it has fade-element class)
-        const eventsSection = publicEventsContainer.closest('section');
-        if (eventsSection) eventsSection.classList.add('visible');
+    if (typeof Database !== 'undefined') {
+        const now = new Date();
+        const allEvents = Database.getEvents().sort((a, b) => new Date(a.date) - new Date(b.date));
+        
+        const upcomingEvents = allEvents.filter(ev => new Date(ev.date) >= now);
+        const pastEvents = allEvents.filter(ev => new Date(ev.date) < now).reverse();
 
-        if (events.length === 0) {
-            publicEventsContainer.innerHTML = `
-                <div style="grid-column: 1 / -1; text-align: center; padding: 2rem; color: var(--text-muted);">
-                    <i class="fa-regular fa-calendar-xmark fa-3x" style="margin-bottom: 1rem; opacity: 0.4; display:block;"></i>
-                    <p>No upcoming events. Check back soon!</p>
+        // Render Upcoming
+        if (publicEventsContainer) {
+            const eventsSection = publicEventsContainer.closest('section');
+            if (eventsSection) eventsSection.classList.add('visible');
+
+            if (upcomingEvents.length === 0) {
+                publicEventsContainer.innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 2rem; color: var(--text-muted);">
+                        <i class="fa-regular fa-calendar-xmark fa-3x" style="margin-bottom: 1rem; opacity: 0.4; display:block;"></i>
+                        <p>No upcoming events. Check back soon!</p>
+                    </div>`;
+            } else {
+                publicEventsContainer.innerHTML = upcomingEvents.map(ev => renderPublicEventCard(ev, false)).join('');
+            }
+        }
+
+        // Render Past
+        if (publicPastEventsContainer) {
+            if (pastEvents.length > 0) {
+                if (pastEventsSection) {
+                    pastEventsSection.style.display = 'block';
+                    pastEventsSection.classList.add('visible');
+                }
+                publicPastEventsContainer.innerHTML = pastEvents.map(ev => renderPublicEventCard(ev, true)).join('');
+            }
+        }
+
+        function renderPublicEventCard(ev, isPast) {
+            const dateObj = new Date(ev.date);
+            const dateStr = dateObj.toLocaleDateString('default', { month: 'short', day: 'numeric', year: 'numeric' });
+            const feeStr = ev.requiresPayment
+                ? `<span style="background:var(--primary); color:#fff; padding:0.2rem 0.6rem; border-radius:20px; font-size:0.8rem; font-weight:600;">Fee: ₹${ev.fee}</span>`
+                : `<span style="background:#16a34a; color:#fff; padding:0.2rem 0.6rem; border-radius:20px; font-size:0.8rem; font-weight:600;">Free Entry</span>`;
+
+            const albumUrls = ev.albumUrls || (ev.albumUrl ? [ev.albumUrl] : []);
+            let linksHtml = '';
+            
+            if (isPast && albumUrls.length > 0) {
+                linksHtml = `
+                <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem;">
+                    ${albumUrls.map((url, idx) => `
+                        <a href="${url}" target="_blank" class="btn btn-primary btn-full" style="font-size: 0.8rem; padding: 0.4rem;">
+                            <i class="fa-solid fa-images"></i> View Gallery ${idx + 1}
+                        </a>
+                    `).join('')}
                 </div>`;
-        } else {
-            publicEventsContainer.innerHTML = events.map(ev => {
-                const dateObj = new Date(ev.date);
-                const dateStr = dateObj.toLocaleDateString('default', { month: 'short', day: 'numeric', year: 'numeric' });
-                const feeStr = ev.requiresPayment
-                    ? `<span style="background:var(--primary); color:#fff; padding:0.2rem 0.6rem; border-radius:20px; font-size:0.8rem; font-weight:600;">Fee: ₹${ev.fee}</span>`
-                    : `<span style="background:#16a34a; color:#fff; padding:0.2rem 0.6rem; border-radius:20px; font-size:0.8rem; font-weight:600;">Free Entry</span>`;
+            } else {
+                linksHtml = `<a href="login.html" class="btn btn-outline btn-full">${isPast ? 'Event Finished' : 'Register Now'}</a>`;
+            }
 
-                return `
-                <div class="card event-card" style="overflow:hidden; opacity:1; transform:none;">
-                    <img src="${ev.bannerUrl}" alt="${ev.title}" style="width:100%; height:180px; object-fit:cover; display:block;">
-                    <div class="card-content">
-                        <div class="event-meta" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
-                            <span><i class="fa-regular fa-calendar"></i> ${dateStr}</span>
-                            ${feeStr}
-                        </div>
-                        <h3 style="margin-bottom:0.5rem;">${ev.title}</h3>
-                        <p style="font-size:0.88rem; color:var(--text-muted); margin-bottom:1rem; line-height:1.5;">${ev.description}</p>
-                        <a href="login.html" class="btn btn-outline btn-full">Register Now</a>
+            return `
+            <div class="card event-card" style="overflow:hidden; opacity:1; transform:none;">
+                <img src="${ev.bannerUrl}" alt="${ev.title}" style="width:100%; height:180px; object-fit:cover; display:block;">
+                <div class="card-content">
+                    <div class="event-meta" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+                        <span><i class="fa-regular fa-calendar"></i> ${dateStr}</span>
+                        ${feeStr}
                     </div>
-                </div>`;
-            }).join('');
+                    <h3 style="margin-bottom:0.5rem;">${ev.title}</h3>
+                    <p style="font-size:0.88rem; color:var(--text-muted); margin-bottom:1rem; line-height:1.5;">${ev.description}</p>
+                    ${linksHtml}
+                </div>
+            </div>`;
         }
     }
 
@@ -237,5 +275,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 renderPublicLeaderboard(btn.dataset.publicLb);
             });
         });
+    }
+
+    // ---- Our Players Rendering ----
+    const ourPlayersContainer = document.getElementById('ourPlayersContainer');
+    if (ourPlayersContainer && typeof Database !== 'undefined') {
+        const players = Database.getOurPlayers();
+        if (players.length > 0) {
+            ourPlayersContainer.innerHTML = players.map(p => `
+                <div class="card champion-card">
+                    <img src="${p.imageUrl}" alt="${p.name}">
+                    <div class="champ-badge"><i class="fa-solid fa-star"></i></div>
+                    <div class="card-content">
+                        <h3>${p.name}</h3>
+                        <p class="achievement">${p.achievement}</p>
+                    </div>
+                </div>
+            `).join('');
+        } else {
+            ourPlayersContainer.innerHTML = '<p class="text-muted" style="padding: 2rem;">Coming soon...</p>';
+        }
     }
 });

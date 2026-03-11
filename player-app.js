@@ -39,6 +39,75 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // --- Subscription & Reminder Alerts ---
+    const checkSubscriptionStatus = () => {
+        const alertsContainer = document.getElementById('subscriptionAlerts');
+        if (!alertsContainer) return;
+        
+        const freshPlayer = Database.getPlayerById(currentPlayer.id) || currentPlayer;
+        const expiryStatus = Database.getMemberExpiryStatus(freshPlayer);
+        let alertsHtml = '';
+
+        // 1. Expiry Alerts
+        if (expiryStatus === 'Expired') {
+            alertsHtml += `
+            <div class="dash-card" style="background: rgba(220,38,38,0.1); border: 1px solid var(--primary); color: var(--text-dark); padding: 1rem; display: flex; align-items: center; gap: 1rem; margin-bottom: 0.75rem;">
+                <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                </div>
+                <div style="flex: 1;">
+                    <h4 style="margin: 0; font-size: 1rem;">Membership Expired</h4>
+                    <p style="margin: 0; font-size: 0.85rem; opacity: 0.8;">Your membership has expired. Please renew to continue access to all club features.</p>
+                </div>
+            </div>`;
+        } else if (expiryStatus === 'Expiring Soon') {
+            const exp = new Date(freshPlayer.expiryDate);
+            const now = new Date();
+            const diffDays = Math.ceil((exp - now) / (1000 * 60 * 60 * 24));
+            
+            alertsHtml += `
+            <div class="dash-card" style="background: rgba(245,158,11,0.1); border: 1px solid #f59e0b; color: var(--text-dark); padding: 1rem; display: flex; align-items: center; gap: 1rem; margin-bottom: 0.75rem;">
+                <div style="width: 40px; height: 40px; border-radius: 50%; background: #f59e0b; color: white; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
+                    <i class="fa-solid fa-clock"></i>
+                </div>
+                <div style="flex: 1;">
+                    <h4 style="margin: 0; font-size: 1rem;">Expiring Soon</h4>
+                    <p style="margin: 0; font-size: 0.85rem; opacity: 0.8;">Your membership will expire in ${diffDays} day${diffDays > 1 ? 's' : ''}. Please renew soon.</p>
+                </div>
+            </div>`;
+        }
+
+        // 2. Admin Reminders
+        if (freshPlayer.reminders && freshPlayer.reminders.length > 0) {
+            freshPlayer.reminders.slice().reverse().forEach(rem => {
+                alertsHtml += `
+                <div class="dash-card" style="background: var(--bg-light); border: 1px solid var(--border); border-left: 4px solid var(--primary); padding: 1rem; display: flex; align-items: center; gap: 1rem; margin-bottom: 0.75rem;">
+                    <div style="width: 40px; height: 40px; border-radius: 50%; background: rgba(220,38,38,0.1); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
+                        <i class="fa-solid fa-bell"></i>
+                    </div>
+                    <div style="flex: 1;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <h4 style="margin: 0; font-size: 0.95rem;">Admin Message</h4>
+                            <small class="text-muted" style="font-size: 0.75rem;">${new Date(rem.date).toLocaleDateString()}</small>
+                        </div>
+                        <p style="margin: 0; font-size: 0.88rem; font-weight: 500;">${rem.message}</p>
+                    </div>
+                </div>`;
+            });
+        }
+
+        alertsContainer.innerHTML = alertsHtml;
+
+        // Update QR Modal Status
+        const qrStatus = document.getElementById('playerQrStatus');
+        if (qrStatus) {
+            qrStatus.textContent = expiryStatus === 'Active' ? 'Active Member' : expiryStatus === 'Expiring Soon' ? 'Expiring Soon' : 'Membership Expired';
+            qrStatus.className = `badge mt-2 ${expiryStatus === 'Active' ? 'badge-success' : expiryStatus === 'Expiring Soon' ? 'badge-warning' : 'badge-danger'}`;
+        }
+    };
+
+    checkSubscriptionStatus();
+
     // My QR Modal Logic
     const myQrModal = document.getElementById('myQrModal');
     const openMyQrBtn = document.getElementById('openMyQrBtn');
@@ -117,7 +186,7 @@ document.addEventListener('DOMContentLoaded', () => {
             };
 
             const imgHtml = ann.imageUrl 
-                ? `<div style="margin-top: 10px; width: 100%; border-radius: 8px; overflow: hidden;"><img src="${ann.imageUrl}" style="width: 100%; height: auto; max-height: 250px; object-fit: cover; display: block;"></div>`
+                ? `<div style="margin-top: 10px; width: 100%; border-radius: 8px; overflow: hidden;"><img src="${ann.imageUrl}" style="width: 100%; height: auto; max-height: 250px; object-fit: cover; display: block; cursor: pointer;" onclick="openImageViewer('${ann.imageUrl}')" title="Click to view full image"></div>`
                 : '';
 
             return `
@@ -149,36 +218,77 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.loadPlayerEvents = () => {
         if (!playerEventsList) return;
-        const events = Database.getEvents().sort((a,b) => new Date(a.date) - new Date(b.date)); // Sort by upcoming
+        const now = new Date();
+        const allEvents = Database.getEvents().sort((a,b) => new Date(a.date) - new Date(b.date));
         
-        // Filter out past events implicitly if we wanted to, or show all. We'll show all and just sort by date.
-        if (events.length === 0) {
+        const upcomingEvents = allEvents.filter(ev => new Date(ev.date) >= now);
+        const pastEvents = allEvents.filter(ev => new Date(ev.date) < now).reverse();
+
+        // Render Upcoming
+        if (upcomingEvents.length === 0) {
             playerEventsList.innerHTML = `<p class="text-muted w-100 text-center">No upcoming events at the moment.</p>`;
-            return;
+        } else {
+            playerEventsList.innerHTML = upcomingEvents.map(ev => renderEventCard(ev, false)).join('');
         }
 
-        playerEventsList.innerHTML = events.map(ev => {
+        // Render Past
+        const pastContainer = document.getElementById('playerPastEventsList');
+        if (pastContainer) {
+            if (pastEvents.length === 0) {
+                pastContainer.innerHTML = `<p class="text-muted w-100 text-center">No past events found.</p>`;
+            } else {
+                pastContainer.innerHTML = pastEvents.map(ev => renderEventCard(ev, true)).join('');
+            }
+        }
+
+        function renderEventCard(ev, isPast) {
             const dateObj = new Date(ev.date);
             const month = dateObj.toLocaleString('default', { month: 'short' });
             const day = dateObj.getDate();
             
-            // Check if player already registered
             const regs = Database.getEventRegistrationsForEvent(ev.id);
             const myReg = regs.find(r => r.playerId === currentPlayer.id);
             
             let actionHtml = '';
-            if (myReg) {
+            if (isPast) {
+                const albumUrls = ev.albumUrls || (ev.albumUrl ? [ev.albumUrl] : []);
+                actionHtml = `
+                <div class="album-links-container" style="margin-top: 1rem; border-top: 1px solid var(--border); padding-top: 1rem;">
+                    <div class="gallery-links" style="margin-bottom: 0.75rem;">
+                        ${albumUrls.length > 0 ? `
+                            <p style="font-size: 0.75rem; font-weight: 600; margin-bottom: 0.4rem; color: var(--text-dark);">Event Galleries:</p>
+                            <div style="display: flex; flex-direction: column; gap: 0.3rem;">
+                                ${albumUrls.map((url, idx) => `
+                                    <a href="${url}" target="_blank" class="btn btn-sm btn-outline-primary" style="font-size: 0.75rem; text-align: left; padding: 0.3rem 0.6rem;">
+                                        <i class="fa-solid fa-images"></i> View Gallery ${idx + 1}
+                                    </a>
+                                `).join('')}
+                            </div>
+                        ` : '<p class="text-muted text-center" style="font-size: 0.8rem; margin-bottom: 0.5rem;">No photos uploaded yet.</p>'}
+                    </div>
+                    
+                    <div style="background: var(--bg-light); padding: 0.75rem; border-radius: 8px; border: 1px dashed var(--border);">
+                        <p style="font-size: 0.75rem; font-weight: 600; margin-bottom: 0.4rem; color: var(--text-dark);">Contribute Photos (G-Drive Link)</p>
+                        <div style="display: flex; gap: 0.4rem;">
+                            <input type="text" class="form-control form-control-sm player-album-input" 
+                                   data-id="${ev.id}" placeholder="Paste link here..." 
+                                   style="font-size: 0.75rem; padding: 0.2rem 0.4rem; height: auto; flex: 1;">
+                            <button class="btn btn-sm btn-outline-primary player-add-album-btn" data-id="${ev.id}" style="padding: 0.2rem 0.4rem; font-size: 0.75rem;">Add</button>
+                        </div>
+                    </div>
+                </div>`;
+            } else if (myReg) {
                 let badgeClass = 'badge-warning';
                 if(myReg.status === 'Approved') badgeClass = 'badge-success';
                 if(myReg.status === 'Rejected') badgeClass = 'badge-danger';
-                actionHtml = `<span class="badge ${badgeClass} mt-2" style="display:inline-block;">Status: ${myReg.status}</span>`;
+                actionHtml = `<span class="badge ${badgeClass} mt-2" style="display:inline-block; width: 100%; text-align: center;">Status: ${myReg.status}</span>`;
             } else {
                 actionHtml = `<button class="btn btn-sm btn-outline-primary mt-2 register-event-btn" data-id="${ev.id}" style="width:100%;">Register</button>`;
             }
 
             return `
             <div class="dash-card event-card" style="display:flex; flex-direction:column;">
-                <img src="${ev.bannerUrl}" style="width:100%; height:120px; object-fit:cover; border-radius:8px; margin-bottom:1rem;" alt="Banner">
+                <img src="${ev.bannerUrl}" style="width:100%; height:120px; object-fit:cover; border-radius:8px; margin-bottom:1rem; cursor:pointer;" alt="Banner" onclick="openImageViewer('${ev.bannerUrl}')" title="Click to view full image">
                 <div style="display:flex; gap:1rem; flex:1;">
                     <div class="event-date">
                         <span class="month">${month}</span>
@@ -195,7 +305,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 ${actionHtml}
             </div>
             `;
-        }).join('');
+        }
 
         // Bind Register Buttons
         document.querySelectorAll('.register-event-btn').forEach(btn => {
@@ -239,6 +349,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 eventRegModal.classList.add('show');
             });
+        });
+
+        // Player Photo Link Logic
+        document.querySelectorAll('.player-add-album-btn').forEach(btn => {
+            btn.onclick = () => {
+                const id = btn.getAttribute('data-id');
+                const input = document.querySelector(`.player-album-input[data-id="${id}"]`);
+                const url = input.value.trim();
+                if (!url) return alert("Please paste a valid Google Drive link.");
+                
+                if (Database.addEventAlbumLink(id, url)) {
+                    btn.textContent = 'Added!';
+                    btn.classList.replace('btn-outline-primary', 'btn-success');
+                    setTimeout(() => {
+                        window.loadPlayerEvents();
+                    }, 1500);
+                }
+            };
         });
     };
 
@@ -329,19 +457,42 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('profileAddons').textContent = freshPlayer.addons || 'None';
         document.getElementById('profileMonthlyFee').textContent = freshPlayer.monthlyFee ? `₹${freshPlayer.monthlyFee}` : '₹0';
 
+        const expiryStatus = Database.getMemberExpiryStatus(freshPlayer);
         const profileStatus = document.getElementById('profileStatus');
-        profileStatus.textContent = freshPlayer.status || 'Active';
-        profileStatus.className = freshPlayer.status === 'Active' ? 'badge badge-success' : 'badge badge-secondary';
+        profileStatus.textContent = expiryStatus || 'Active';
+        
+        if (expiryStatus === 'Active') profileStatus.className = 'badge badge-success';
+        else if (expiryStatus === 'Expiring Soon') profileStatus.className = 'badge badge-warning';
+        else if (expiryStatus === 'Expired') profileStatus.className = 'badge badge-danger';
+        else profileStatus.className = 'badge badge-secondary';
+
+        const expiryDateEl = document.getElementById('profileExpiryDate');
+        if (expiryDateEl) {
+            expiryDateEl.textContent = freshPlayer.expiryDate ? new Date(freshPlayer.expiryDate).toLocaleDateString() : 'No expiry set';
+        }
 
         document.getElementById('profileAvatar').src = avatarUrl;
 
-        // --- Certificate / Document (fresh from DB) ---
+        // --- Documents & Certificates (fresh from DB) ---
         const certSection = document.getElementById('profileCertSection');
-        const certLink = document.getElementById('profileCertLink');
-        if (certSection && certLink) {
-            if (freshPlayer.pdfDocument) {
-                certSection.style.display = 'block';
-                certLink.href = freshPlayer.pdfDocument;
+        const docList = document.getElementById('playerDocList');
+        if (certSection && docList) {
+            const docs = freshPlayer.documents || [];
+            
+            // Backup for legacy (single doc)
+            if (docs.length === 0 && freshPlayer.pdfDocument) {
+                docs.push({ id: 'legacy', name: 'Primary Document', url: freshPlayer.pdfDocument });
+            }
+
+            if (docs.length > 0) {
+                certSection.style.display = 'flex';
+                docList.innerHTML = docs.map(doc => `
+                    <a href="${doc.url}" download="${doc.name}" class="btn btn-outline btn-full" style="border-color: var(--primary); color: var(--primary); display: flex; align-items: center; justify-content: center; gap: 0.5rem; text-align: left; padding: 0.75rem; border-radius: 8px;">
+                        <i class="fa-solid fa-file-pdf"></i>
+                        <span style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${doc.name}</span>
+                        <i class="fa-solid fa-download" style="font-size: 0.8rem; opacity: 0.7;"></i>
+                    </a>
+                `).join('');
             } else {
                 certSection.style.display = 'none';
             }
@@ -1200,8 +1351,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const cfg = dietCatConfig[p.category] || dietCatConfig['General'];
             const created = new Date(p.createdAt).toLocaleDateString();
             const fileBtn = p.fileUrl
-                ? `<a href="${p.fileUrl}" download="diet-plan" style="display:inline-flex;align-items:center;gap:0.5rem;font-size:0.85rem;font-weight:600;color:${cfg.color};background:${cfg.color}15;padding:0.5rem 1rem;border-radius:20px;text-decoration:none;margin-top:0.75rem;border:1px solid ${cfg.color}40;">
-                      <i class="fa-solid fa-file-arrow-down"></i> Download Attachment
+                ? `<a href="javascript:void(0);" onclick="openImageViewer('${p.fileUrl}')" style="display:inline-flex;align-items:center;gap:0.5rem;font-size:0.85rem;font-weight:600;color:${cfg.color};background:${cfg.color}15;padding:0.5rem 1rem;border-radius:20px;text-decoration:none;margin-top:0.75rem;border:1px solid ${cfg.color}40;" title="Click to view full image">
+                      <i class="fa-solid fa-image"></i> View & Download Attachment
                    </a>` : '';
             const descHtml = p.description.replace(/\n/g, '<br>');
             return `
@@ -1712,6 +1863,132 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (closeChalPlayer) closeChalPlayer.addEventListener('click', () => closeModal('playerChallengesModal'));
     if (chalPlayerModal) chalPlayerModal.addEventListener('click', e => { if (e.target === chalPlayerModal) closeModal('playerChallengesModal'); });
+
+    // ---- Image Viewer Functionality ----
+    window.openImageViewer = function(imgSrc) {
+        const viewerModal = document.getElementById('imageViewerModal');
+        const viewerImg = document.getElementById('imageViewerImg');
+        const viewerdlBtn = document.getElementById('imageViewerDownloadBtn');
+        
+        if(viewerModal && viewerImg && viewerdlBtn) {
+            viewerImg.src = imgSrc;
+            viewerdlBtn.href = imgSrc;
+            viewerModal.classList.add('show');
+        }
+    };
+
+    const closeImageViewerModal = document.getElementById('closeImageViewerModal');
+    if(closeImageViewerModal) {
+        closeImageViewerModal.addEventListener('click', () => {
+            document.getElementById('imageViewerModal').classList.remove('show');
+        });
+    }
+
+    const imageViewerModal = document.getElementById('imageViewerModal');
+    if(imageViewerModal) {
+        imageViewerModal.addEventListener('click', (e) => {
+            if(e.target === imageViewerModal) {
+                imageViewerModal.classList.remove('show');
+            }
+        });
+    }
+
+    // ---- Carousel Functionality for Player Dashboard ----
+    const track = document.querySelector('.carousel-track');
+    const dotsContainer = document.querySelector('.carousel-dots');
+    
+    // Stop execution if carousel elements don't exist
+    if (!track || !dotsContainer) return;
+
+    // Load banners from DB
+    const banners = typeof Database !== 'undefined' ? Database.getBanners() : [];
+    
+    if (banners.length > 0) {
+        track.innerHTML = banners.map(b => `
+            <div class="slide" style="background-image: linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0.2)), url('${b.url}'); ${b.redirectUrl && b.redirectUrl !== '#' ? 'cursor: pointer;' : ''}" ${b.redirectUrl && b.redirectUrl !== '#' ? `onclick="window.open('${b.redirectUrl}', '_blank')"` : ''}>
+                <div class="slide-content">
+                    <h2>${b.title}</h2>
+                    <p>${b.subtitle}</p>
+                </div>
+            </div>
+        `).join('');
+        
+        dotsContainer.innerHTML = banners.map((b, i) => `
+            <span class="dot ${i === 0 ? 'active' : ''}"></span>
+        `).join('');
+
+        const slides = document.querySelectorAll('.slide');
+        const dots = document.querySelectorAll('.dot');
+        let currentIndex = 0;
+        const slideCount = slides.length;
+        let autoSlideInterval;
+        
+        const goToSlide = (index) => {
+            track.style.transform = `translateX(-${index * 100}%)`;
+            dots.forEach(dot => dot.classList.remove('active'));
+            dots[index].classList.add('active');
+            currentIndex = index;
+        };
+
+        const nextSlide = () => {
+            let nextIndex = (currentIndex + 1) % slideCount;
+            goToSlide(nextIndex);
+        };
+
+        const startAutoSlide = () => {
+            autoSlideInterval = setInterval(nextSlide, 3000);
+        };
+
+        const stopAutoSlide = () => {
+            clearInterval(autoSlideInterval);
+        };
+
+        // Dot clicks
+        dots.forEach((dot, index) => {
+            dot.addEventListener('click', () => {
+                stopAutoSlide();
+                goToSlide(index);
+                startAutoSlide();
+            });
+        });
+
+        startAutoSlide();
+
+        // Touch Swipe
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        track.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+            stopAutoSlide();
+        }, {passive: true});
+
+        track.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            if (touchEndX < touchStartX - 50) nextSlide();
+            if (touchEndX > touchStartX + 50) goToSlide((currentIndex - 1 + slideCount) % slideCount);
+            startAutoSlide();
+        }, {passive: true});
+    }
+
+    // ---- Diet Plan Modal (Player) ----
+    const playerDietPlanModal = document.getElementById('playerDietPlanModal');
+    const openDietPlanNav = document.getElementById('openDietPlanNav');
+    const closePlayerDietPlanModal = document.getElementById('closePlayerDietPlanModal');
+
+    if (openDietPlanNav && playerDietPlanModal) {
+        openDietPlanNav.addEventListener('click', (e) => {
+            e.preventDefault();
+            playerDietPlanModal.classList.add('show');
+            // Logic to render diet plans should be handled elsewhere or initialized here
+        });
+    }
+
+    if (closePlayerDietPlanModal && playerDietPlanModal) {
+        closePlayerDietPlanModal.addEventListener('click', () => {
+            playerDietPlanModal.classList.remove('show');
+        });
+    }
 });
 
 

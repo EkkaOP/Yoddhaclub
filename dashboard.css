@@ -320,6 +320,78 @@ body {
 .activity-time { font-size: 0.8rem; color: var(--text-muted); }
 
 /* Player Dashboard Specific */
+.banner-section {
+    position: relative;
+    width: 100%;
+    height: 250px;
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--shadow-md);
+    background: #000;
+}
+
+.carousel-track {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.5s ease-in-out;
+}
+
+.slide {
+    flex: 0 0 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    position: relative;
+}
+
+.slide-content {
+    position: absolute;
+    bottom: 2rem;
+    left: 2rem;
+    color: white;
+    z-index: 2;
+    max-width: 80%;
+}
+
+.slide-content h2 {
+    font-size: 1.8rem;
+    margin-bottom: 0.5rem;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+    font-weight: 700;
+}
+
+.slide-content p {
+    font-size: 1rem;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+    color: rgba(255,255,255,0.9);
+}
+
+.carousel-dots {
+    position: absolute;
+    bottom: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 0.5rem;
+    z-index: 10;
+}
+
+.dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.4);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.dot.active {
+    background: white;
+    transform: scale(1.2);
+}
+
 .welcome-banner {
     background: linear-gradient(135deg, var(--primary), var(--primary-hover));
     border-radius: var(--radius);
@@ -483,6 +555,7 @@ body {
     border-radius: 8px;
     display: inline-block;
     border: 1px solid var(--border);
+    color: #000; /* Always black for QR text/labels inside */
 }
 
 .badge {

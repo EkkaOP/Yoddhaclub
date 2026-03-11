@@ -45,6 +45,15 @@ class Database {
             };
             localStorage.setItem('coaches', JSON.stringify([defaultCoach]));
         }
+
+        if (!localStorage.getItem('ourPlayers')) {
+            const defaultOurPlayers = [
+                { id: 'CHAMP-1', name: 'Elena Rodriguez', achievement: 'State Powerlifting Champion', imageUrl: 'https://images.unsplash.com/photo-1526506114642-54bc0837f42c?auto=format&fit=crop&q=80&w=400' },
+                { id: 'CHAMP-2', name: 'James Wilson', achievement: 'Triathlon Winner 2023', imageUrl: 'https://images.unsplash.com/photo-1554284126-aa88f22d8b74?auto=format&fit=crop&q=80&w=400' },
+                { id: 'CHAMP-3', name: 'Chloe Carter', achievement: 'National Gymnast', imageUrl: 'https://images.unsplash.com/photo-1620882193910-61f623631fca?auto=format&fit=crop&q=80&w=400' }
+            ];
+            localStorage.setItem('ourPlayers', JSON.stringify(defaultOurPlayers));
+        }
     }
 
     static getPlayers() {
@@ -102,6 +111,10 @@ class Database {
         const paddedNumber = playerNumber.toString().padStart(4, '0');
         const newId = `CLUB-PLAYER-${paddedNumber}`;
 
+        const now = new Date();
+        const expiry = new Date(now);
+        expiry.setDate(now.getDate() + 30); // Default 30 days
+
         const newPlayer = {
             id: newId,
             ...playerData,
@@ -111,7 +124,10 @@ class Database {
             monthlyFee: parseFloat(playerData.monthlyFee) || 0,
             discount: parseFloat(playerData.discount) || 0,
             status: playerData.status || 'Pending',
-            joinedAt: new Date().toISOString()
+            joinedAt: now.toISOString(),
+            expiryDate: playerData.expiryDate || expiry.toISOString(),
+            reminders: [],
+            documents: []
         };
 
         players.push(newPlayer);
@@ -143,10 +159,77 @@ class Database {
     }
 
     static updatePlayerDocument(playerId, docUrl) {
-        let players = this.getPlayers();
+        // Keeping as legacy support for single doc update
+        return this.addPlayerDocument(playerId, "Primary Document", docUrl);
+    }
+
+    static migrateLegacyDocument(playerId) {
+        try {
+            const players = this.getPlayers();
+            const idx = players.findIndex(p => p.id === playerId);
+            if (idx === -1) return false;
+            
+            const p = players[idx];
+            if (p.pdfDocument && (!p.documents || p.documents.length === 0)) {
+                p.documents = [{
+                    id: 'DOC-MIGRATED',
+                    name: 'Primary Document',
+                    url: p.pdfDocument,
+                    uploadedAt: p.joinedAt || new Date().toISOString()
+                }];
+                localStorage.setItem('players', JSON.stringify(players));
+                return true;
+            }
+            return false;
+        } catch (err) {
+            console.error('Migration error:', err);
+            return false;
+        }
+    }
+
+    static addPlayerDocument(playerId, docName, docUrl) {
+        try {
+            const players = this.getPlayers();
+            const playerIndex = players.findIndex(p => p.id === playerId);
+            if (playerIndex === -1) return { success: false, message: 'Player not found' };
+
+            if (!players[playerIndex].documents || !Array.isArray(players[playerIndex].documents)) {
+                players[playerIndex].documents = [];
+            }
+            
+            const newDoc = {
+                id: `DOC-${Date.now()}`,
+                name: docName || 'Untitled Document',
+                url: docUrl,
+                uploadedAt: new Date().toISOString()
+            };
+            
+            players[playerIndex].documents.push(newDoc);
+            // Also update legacy field for backward compatibility
+            players[playerIndex].pdfDocument = docUrl; 
+            
+            localStorage.setItem('players', JSON.stringify(players));
+            return { success: true };
+        } catch (error) {
+            console.error('Error adding player document:', error);
+            if (error.name === 'QuotaExceededError' || error.name === 'NS_ERROR_DOM_QUOTA_REACHED') {
+                return { success: false, message: 'Storage limit reached. Please use smaller files or delete old documents.' };
+            }
+            return { success: false, message: 'Failed to save document. ' + error.message };
+        }
+    }
+
+    static deletePlayerDocument(playerId, docId) {
+        const players = this.getPlayers();
         const playerIndex = players.findIndex(p => p.id === playerId);
-        if (playerIndex !== -1) {
-            players[playerIndex].pdfDocument = docUrl;
+        if (playerIndex !== -1 && players[playerIndex].documents) {
+            players[playerIndex].documents = players[playerIndex].documents.filter(d => d.id !== docId);
+            // Update legacy field to match the latest document if any remains
+            if (players[playerIndex].documents.length > 0) {
+                players[playerIndex].pdfDocument = players[playerIndex].documents[players[playerIndex].documents.length - 1].url;
+            } else {
+                players[playerIndex].pdfDocument = '';
+            }
             localStorage.setItem('players', JSON.stringify(players));
             return true;
         }
@@ -217,17 +300,66 @@ class Database {
     static addPayment(playerId, amount, method, paymentType = 'Monthly') {
         const payments = this.getPayments();
         const newId = `PAY-${Date.now()}`;
+        const now = new Date().toISOString();
         const newPayment = {
             id: newId,
             playerId,
             amount: parseFloat(amount),
             method,
             paymentType,
-            date: new Date().toISOString()
+            date: now
         };
         payments.push(newPayment);
         localStorage.setItem('payments', JSON.stringify(payments));
+
+        // Update expiry date and status if it's a monthly payment
+        if (paymentType === 'Monthly') {
+            const players = this.getPlayers();
+            const pIndex = players.findIndex(p => p.id === playerId);
+            if (pIndex !== -1) {
+                const currentExpiry = new Date(players[pIndex].expiryDate || Date.now());
+                // If already expired, start from today. If not, add to current.
+                const baseDate = currentExpiry < new Date() ? new Date() : currentExpiry;
+                baseDate.setDate(baseDate.getDate() + 30);
+                
+                players[pIndex].expiryDate = baseDate.toISOString();
+                players[pIndex].status = 'Active';
+                localStorage.setItem('players', JSON.stringify(players));
+            }
+        }
+
         return { success: true, payment: newPayment };
+    }
+
+    // --- Subscription Logic Helpers ---
+    static getMemberExpiryStatus(player) {
+        if (player.status === 'Left' || player.status === 'Pending') return player.status;
+        if (!player.expiryDate) return player.status || 'Active';
+        const now = new Date();
+        const expiry = new Date(player.expiryDate);
+        const diffTime = expiry - now;
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        if (diffDays <= 0) return 'Expired';
+        if (diffDays <= 5) return 'Expiring Soon';
+        return 'Active';
+    }
+
+    static sendReminder(playerId, message) {
+        const players = this.getPlayers();
+        const pIndex = players.findIndex(p => p.id === playerId);
+        if (pIndex !== -1) {
+            if (!players[pIndex].reminders) players[pIndex].reminders = [];
+            players[pIndex].reminders.unshift({
+                id: `REM-${Date.now()}`,
+                message,
+                date: new Date().toISOString(),
+                read: false
+            });
+            localStorage.setItem('players', JSON.stringify(players));
+            return true;
+        }
+        return false;
     }
 
     // --- Event Management ---
@@ -235,7 +367,7 @@ class Database {
         return JSON.parse(localStorage.getItem('events')) || [];
     }
 
-    static addEvent(title, date, description, bannerUrl, requiresPayment = false, fee = 0, paymentQrUrl = '', paymentUpiId = '') {
+    static addEvent(title, date, description, bannerUrl, requiresPayment = false, fee = 0, paymentQrUrl = '', paymentUpiId = '', albumUrls = []) {
         const events = this.getEvents();
         const newId = `EVENT-${Date.now()}`;
         const newEvent = {
@@ -248,11 +380,39 @@ class Database {
             fee: parseFloat(fee) || 0,
             paymentQrUrl,
             paymentUpiId,
+            albumUrls: Array.isArray(albumUrls) ? albumUrls : (albumUrls ? [albumUrls] : []),
             createdAt: new Date().toISOString()
         };
         events.push(newEvent);
         localStorage.setItem('events', JSON.stringify(events));
         return { success: true, event: newEvent };
+    }
+
+    static addEventAlbumLink(eventId, albumUrl) {
+        const events = this.getEvents();
+        const index = events.findIndex(e => e.id === eventId);
+        if (index !== -1) {
+            if (!events[index].albumUrls) {
+                // Migration for old single link format
+                events[index].albumUrls = events[index].albumUrl ? [events[index].albumUrl] : [];
+                delete events[index].albumUrl;
+            }
+            events[index].albumUrls.push(albumUrl);
+            localStorage.setItem('events', JSON.stringify(events));
+            return true;
+        }
+        return false;
+    }
+
+    static deleteEventAlbumLink(eventId, linkIndex) {
+        const events = this.getEvents();
+        const index = events.findIndex(e => e.id === eventId);
+        if (index !== -1 && events[index].albumUrls) {
+            events[index].albumUrls.splice(linkIndex, 1);
+            localStorage.setItem('events', JSON.stringify(events));
+            return true;
+        }
+        return false;
     }
 
     static deleteEvent(eventId) {
@@ -745,6 +905,31 @@ class Database {
         expenses = expenses.filter(e => e.id !== id);
         if (expenses.length !== before) {
             localStorage.setItem('expenses', JSON.stringify(expenses));
+            return true;
+        }
+        return false;
+    }
+
+    // --- Our Players Management ---
+    static getOurPlayers() {
+        return JSON.parse(localStorage.getItem('ourPlayers')) || [];
+    }
+
+    static addOurPlayer(name, achievement, imageUrl) {
+        const players = this.getOurPlayers();
+        const newId = `CHAMP-${Date.now()}`;
+        const newPlayer = { id: newId, name, achievement, imageUrl };
+        players.push(newPlayer);
+        localStorage.setItem('ourPlayers', JSON.stringify(players));
+        return { success: true, player: newPlayer };
+    }
+
+    static deleteOurPlayer(id) {
+        let players = this.getOurPlayers();
+        const initialLength = players.length;
+        players = players.filter(p => p.id !== id);
+        if (players.length !== initialLength) {
+            localStorage.setItem('ourPlayers', JSON.stringify(players));
             return true;
         }
         return false;

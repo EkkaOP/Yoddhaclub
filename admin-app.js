@@ -447,10 +447,15 @@ document.addEventListener('DOMContentLoaded', () => {
             players = players.filter(p => p.status !== 'Pending');
 
             if (currentMemberFilter !== 'All') {
-                // Map frontend filters to db statuses
-                // 'Live' matches 'Active'
-                const targetStatus = currentMemberFilter === 'Live' ? 'Active' : currentMemberFilter;
-                players = players.filter(p => p.status === targetStatus);
+                if (currentMemberFilter === 'Expiring Soon') {
+                    players = players.filter(p => Database.getMemberExpiryStatus(p) === 'Expiring Soon');
+                } else if (currentMemberFilter === 'Live') {
+                    players = players.filter(p => Database.getMemberExpiryStatus(p) === 'Active');
+                } else if (currentMemberFilter === 'Expired') {
+                    players = players.filter(p => Database.getMemberExpiryStatus(p) === 'Expired');
+                } else {
+                    players = players.filter(p => p.status === currentMemberFilter);
+                }
             }
             
             if(players.length === 0) {
@@ -462,10 +467,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 const dateJoined = p.joinedAt ? new Date(p.joinedAt).toLocaleDateString() : 'N/A';
                 
                 // Determine badge class for current status
+                const expiryStatus = Database.getMemberExpiryStatus(p);
                 let badgeClass = 'badge-secondary';
-                if (p.status === 'Active') badgeClass = 'badge-success';
-                else if (p.status === 'Expired') badgeClass = 'badge-warning'; // Need to make sure this exists or will just fallback
-                else if (p.status === 'Left') badgeClass = 'badge-danger';
+                if (expiryStatus === 'Active') badgeClass = 'badge-success';
+                else if (expiryStatus === 'Expiring Soon') badgeClass = 'badge-warning';
+                else if (expiryStatus === 'Expired') badgeClass = 'badge-danger';
+                else if (p.status === 'Left') badgeClass = 'badge-secondary';
 
                 return `
                 <tr class="player-row" data-id="${p.id}" style="cursor: pointer;">
@@ -511,192 +518,287 @@ document.addEventListener('DOMContentLoaded', () => {
                     const adminProfileModal = document.getElementById('adminPlayerProfileModal');
                     
                     if (player && adminProfileModal) {
-                        // Populate Profile Details
-                        document.getElementById('adminProfileName').textContent = player.name;
-                        document.getElementById('adminProfileId').textContent = player.id;
-                        document.getElementById('adminProfilePhoneNum').textContent = player.mobile || 'N/A';
-                        
-                        const joinDate = player.joinedAt ? new Date(player.joinedAt).toLocaleDateString() : 'N/A';
-                        document.getElementById('adminProfileJoined').textContent = joinDate;
-                        
-                        document.getElementById('adminProfilePlan').textContent = player.plan || 'N/A';
-                        document.getElementById('adminProfileBatch').textContent = player.batch || 'N/A';
-                        document.getElementById('adminProfileAddons').textContent = player.addons || 'None';
-                        document.getElementById('adminProfileEnrollmentFee').textContent = player.enrollmentFee ? `₹${player.enrollmentFee}` : '₹0';
-                        document.getElementById('adminProfileMonthlyFee').textContent = player.monthlyFee ? `₹${player.monthlyFee}` : '₹0';
-                        document.getElementById('adminProfileDiscount').textContent = player.discount ? `- ₹${player.discount}` : '- ₹0';
-                        
-                        const profileStatus = document.getElementById('adminProfileStatus');
-                        profileStatus.textContent = player.status || 'Active';
-                        if (player.status === 'Active') profileStatus.className = 'badge badge-success';
-                        else if (player.status === 'Expired') profileStatus.className = 'badge badge-warning';
-                        else profileStatus.className = 'badge badge-danger';
-
-                        const avatarUrl = player.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(player.name)}&background=FF0000&color=fff`;
-                        const adminAvatarImg = document.getElementById('adminProfileAvatar');
-                        adminAvatarImg.src = avatarUrl;
-
-                        // --- Social Media Contact Buttons ---
-                        const socialContainer = document.getElementById('adminSocialLinks');
-                        if (socialContainer) {
-                            const btns = [];
-
-                            // WhatsApp — use saved number or fallback to mobile
-                            const waNum = (player.whatsapp || player.mobile || '').replace(/\D/g, '');
-                            if (waNum) {
-                                btns.push(`<a href="https://wa.me/${waNum}" target="_blank" rel="noopener"
-                                    style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.5rem 1rem;border-radius:999px;font-size:0.82rem;font-weight:700;text-decoration:none;
-                                           background:#25D366;color:#fff;box-shadow:0 2px 8px rgba(37,211,102,0.4);transition:opacity 0.2s;"
-                                    onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
-                                    <i class="fa-brands fa-whatsapp" style="font-size:1rem;"></i> WhatsApp
-                                </a>`);
-                            }
-
-                            // Instagram
-                            const ig = player.instagram || '';
-                            if (ig) {
-                                const igUrl = ig.startsWith('http') ? ig : `https://instagram.com/${ig.replace('@','')}`;
-                                btns.push(`<a href="${igUrl}" target="_blank" rel="noopener"
-                                    style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.5rem 1rem;border-radius:999px;font-size:0.82rem;font-weight:700;text-decoration:none;
-                                           background:linear-gradient(135deg,#f9ce34,#ee2a7b,#6228d7);color:#fff;box-shadow:0 2px 8px rgba(238,42,123,0.4);transition:opacity 0.2s;"
-                                    onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
-                                    <i class="fa-brands fa-instagram" style="font-size:1rem;"></i> Instagram
-                                </a>`);
-                            }
-
-                            // Facebook
-                            const fb = player.facebook || '';
-                            if (fb) {
-                                const fbUrl = fb.startsWith('http') ? fb : `https://${fb}`;
-                                btns.push(`<a href="${fbUrl}" target="_blank" rel="noopener"
-                                    style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.5rem 1rem;border-radius:999px;font-size:0.82rem;font-weight:700;text-decoration:none;
-                                           background:#1877F2;color:#fff;box-shadow:0 2px 8px rgba(24,119,242,0.4);transition:opacity 0.2s;"
-                                    onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
-                                    <i class="fa-brands fa-facebook" style="font-size:1rem;"></i> Facebook
-                                </a>`);
-                            }
-
-                            socialContainer.innerHTML = btns.join('');
-                            socialContainer.style.display = btns.length > 0 ? 'flex' : 'none';
-                        }
-
-                        // --- Photo Change Logic ---
-                        const photoInput = document.getElementById('adminChangePhotoInput');
-                        const photoMsg = document.getElementById('adminPhotoChangeMsg');
-                        // Remove old listener by cloning
-                        const freshPhotoInput = photoInput.cloneNode(true);
-                        photoInput.parentNode.replaceChild(freshPhotoInput, photoInput);
-
-                        freshPhotoInput.addEventListener('change', () => {
-                            const file = freshPhotoInput.files[0];
-                            if (!file) return;
-                            const reader = new FileReader();
-                            reader.onload = (ev) => {
-                                const base64 = ev.target.result;
-                                // Update avatar on screen immediately
-                                adminAvatarImg.src = base64;
-                                // Persist to DB
-                                const players = Database.getPlayers();
-                                const target = players.find(p => p.id === player.id);
-                                if (target) {
-                                    target.photo = base64;
-                                    localStorage.setItem('players', JSON.stringify(players));
-                                }
-                                freshPhotoInput.value = '';
-                                // Flash success message
-                                if (photoMsg) {
-                                    photoMsg.textContent = 'Photo updated!';
-                                    photoMsg.style.setProperty('display', 'block', 'important');
-                                    setTimeout(() => photoMsg.style.setProperty('display', 'none', 'important'), 3000);
-                                }
+                        try {
+                            // Populate Profile Details
+                            const setElText = (id, val) => {
+                                const el = document.getElementById(id);
+                                if (el) el.textContent = val || 'N/A';
                             };
-                            reader.readAsDataURL(file);
-                        });
-                        
-                        // Populate Documents Section
-                        const docView = document.getElementById('adminProfileDocView');
-                        const docLink = document.getElementById('adminProfileDocLink');
-                        if (player.pdfDocument) {
-                            docView.style.display = 'block';
-                            docLink.href = player.pdfDocument;
-                        } else {
-                            docView.style.display = 'none';
-                        }
-                        
-                        // Setup Document Upload
-                        const docUploadBtn = document.getElementById('adminProfileUploadBtn');
-                        const docFileInput = document.getElementById('adminProfileDocFile');
-                        const docMsg = document.getElementById('adminProfileUploadMsg');
-                        
-                        // Clear old listener
-                        const newBtn = docUploadBtn.cloneNode(true);
-                        docUploadBtn.parentNode.replaceChild(newBtn, docUploadBtn);
-                        docFileInput.value = '';
-                        docMsg.style.display = 'none';
 
-                        newBtn.addEventListener('click', (ev) => {
-                            ev.preventDefault();
-                            const file = docFileInput.files[0];
-                            if (!file) return;
+                            setElText('adminProfileName', player.name);
+                            setElText('adminProfileId', player.id);
+                            setElText('adminProfilePhoneNum', player.mobile);
+                            
+                            const joinDate = player.joinedAt ? new Date(player.joinedAt).toLocaleDateString() : 'N/A';
+                            setElText('adminProfileJoined', joinDate);
+                            
+                            setElText('adminProfilePlan', player.plan);
+                            setElText('adminProfileBatch', player.batch);
+                            setElText('adminProfileAddons', player.addons);
+                            setElText('adminProfileEnrollmentFee', player.enrollmentFee ? `₹${player.enrollmentFee}` : '₹0');
+                            setElText('adminProfileMonthlyFee', player.monthlyFee ? `₹${player.monthlyFee}` : '₹0');
+                            setElText('adminProfileDiscount', player.discount ? `- ₹${player.discount}` : '- ₹0');
+                            
+                            const expiryStatus = Database.getMemberExpiryStatus(player);
+                            const profileStatus = document.getElementById('adminProfileStatus');
+                            if (profileStatus) {
+                                profileStatus.textContent = expiryStatus || 'Active';
+                                if (expiryStatus === 'Active') profileStatus.className = 'badge badge-success';
+                                else if (expiryStatus === 'Expiring Soon') profileStatus.className = 'badge badge-warning';
+                                else if (expiryStatus === 'Expired') profileStatus.className = 'badge badge-danger';
+                                else profileStatus.className = 'badge badge-secondary';
+                            }
 
-                            const reader = new FileReader();
-                            reader.onload = (e) => {
-                                const base64 = e.target.result;
-                                if (Database.updatePlayerDocument(player.id, base64)) {
-                                    // Update local instance slightly for smooth UI
-                                    player.pdfDocument = base64;
-                                    docView.style.display = 'block';
-                                    docLink.href = base64;
+                            // --- Expiry Countdown Logic ---
+                            const countdownBadge = document.getElementById('adminProfileExpiryCountdown');
+                            const countdownText = document.getElementById('adminProfileCountdownText');
+                            const expiryDisplay = document.getElementById('adminProfileExpiryDate');
+                            
+                            if (expiryDisplay) {
+                                expiryDisplay.textContent = player.expiryDate ? new Date(player.expiryDate).toLocaleDateString() : 'No expiry set';
+                            }
+
+                            if (countdownBadge && countdownText) {
+                                if (player.expiryDate) {
+                                    const now = new Date();
+                                    const exp = new Date(player.expiryDate);
+                                    const diffTime = exp - now;
+                                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
                                     
-                                    docMsg.textContent = 'Document successfully updated!';
-                                    docMsg.style.display = 'block';
-                                    docFileInput.value = '';
-                                    setTimeout(() => { docMsg.style.display = 'none'; }, 3000);
+                                    if (diffDays <= 5 && diffDays > 0) {
+                                        countdownBadge.style.display = 'block';
+                                        countdownText.textContent = `${diffDays} Day${diffDays > 1 ? 's' : ''} Left`;
+                                    } else if (diffDays <= 0) {
+                                        countdownBadge.style.display = 'block';
+                                        countdownText.textContent = 'EXPIRED';
+                                        const badgeSpan = countdownBadge.querySelector('span');
+                                        if (badgeSpan) badgeSpan.style.background = 'var(--error)';
+                                    } else {
+                                        countdownBadge.style.display = 'none';
+                                    }
+                                } else {
+                                    countdownBadge.style.display = 'none';
+                                }
+                            }
+
+                            // --- Send Reminder Button ---
+                            const reminderBtn = document.getElementById('adminSendReminderBtn');
+                            if (reminderBtn && reminderBtn.parentNode) {
+                                const freshReminderBtn = reminderBtn.cloneNode(true);
+                                reminderBtn.parentNode.replaceChild(freshReminderBtn, reminderBtn);
+                                freshReminderBtn.addEventListener('click', () => {
+                                    const msg = prompt('Enter reminder message:', 'Your membership is expiring soon. Please renew to continue access.');
+                                    if (msg) {
+                                        if (Database.sendReminder(player.id, msg)) {
+                                            alert('Reminder sent to member dashboard!');
+                                        }
+                                    }
+                                });
+                            }
+
+                            const avatarUrl = player.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(player.name)}&background=FF0000&color=fff`;
+                            const adminAvatarImg = document.getElementById('adminProfileAvatar');
+                            if (adminAvatarImg) adminAvatarImg.src = avatarUrl;
+
+                            // --- Social Media Contact Buttons ---
+                            const socialContainer = document.getElementById('adminSocialLinks');
+                            if (socialContainer) {
+                                const btns = [];
+                                const waNum = (player.whatsapp || player.mobile || '').replace(/\D/g, '');
+                                if (waNum) {
+                                    btns.push(`<a href="https://wa.me/${waNum}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.5rem 1rem;border-radius:999px;font-size:0.82rem;font-weight:700;text-decoration:none;background:#25D366;color:#fff;box-shadow:0 2px 8px rgba(37,211,102,0.4);"> <i class="fa-brands fa-whatsapp"></i> WhatsApp </a>`);
+                                }
+                                const ig = player.instagram || '';
+                                if (ig) {
+                                    const igUrl = ig.startsWith('http') ? ig : `https://instagram.com/${ig.replace('@','')}`;
+                                    btns.push(`<a href="${igUrl}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.5rem 1rem;border-radius:999px;font-size:0.82rem;font-weight:700;text-decoration:none;background:linear-gradient(135deg,#f9ce34,#ee2a7b,#6228d7);color:#fff;box-shadow:0 2px 8px rgba(238,42,123,0.4);"> <i class="fa-brands fa-instagram"></i> Instagram </a>`);
+                                }
+                                const fb = player.facebook || '';
+                                if (fb) {
+                                    const fbUrl = fb.startsWith('http') ? fb : `https://${fb}`;
+                                    btns.push(`<a href="${fbUrl}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.5rem 1rem;border-radius:999px;font-size:0.82rem;font-weight:700;text-decoration:none;background:#1877F2;color:#fff;box-shadow:0 2px 8px rgba(24,119,242,0.4);"> <i class="fa-brands fa-facebook"></i> Facebook </a>`);
+                                }
+                                socialContainer.innerHTML = btns.join('');
+                                socialContainer.style.display = btns.length > 0 ? 'flex' : 'none';
+                            }
+
+                            // --- Photo Change Logic ---
+                            const photoInput = document.getElementById('adminChangePhotoInput');
+                            const photoMsg = document.getElementById('adminPhotoChangeMsg');
+                            if (photoInput && photoInput.parentNode) {
+                                const freshPhotoInput = photoInput.cloneNode(true);
+                                photoInput.parentNode.replaceChild(freshPhotoInput, photoInput);
+                                freshPhotoInput.addEventListener('change', () => {
+                                    const file = freshPhotoInput.files[0];
+                                    if (!file) return;
+                                    const reader = new FileReader();
+                                    reader.onload = (ev) => {
+                                        const base64 = ev.target.result;
+                                        if (adminAvatarImg) adminAvatarImg.src = base64;
+                                        const players = Database.getPlayers();
+                                        const target = players.find(p => p.id === player.id);
+                                        if (target) {
+                                            target.photo = base64;
+                                            localStorage.setItem('players', JSON.stringify(players));
+                                        }
+                                        freshPhotoInput.value = '';
+                                        if (photoMsg) {
+                                            photoMsg.textContent = 'Photo updated!';
+                                            photoMsg.style.display = 'block';
+                                            setTimeout(() => { if (photoMsg) photoMsg.style.display = 'none'; }, 3000);
+                                        }
+                                    };
+                                    reader.readAsDataURL(file);
+                                });
+                            }
+                            
+                            // Populate Documents Section
+                            const loadPlayerDocs = () => {
+                                try {
+                                    const freshPlayer = Database.getPlayerById(player.id);
+                                    if (!freshPlayer) return;
+                                    
+                                    const docList = document.getElementById('adminProfileDocList');
+                                    if (!docList) return;
+                                    
+                                    // Migration check: if documents missing but pdf exists
+                                    Database.migrateLegacyDocument(freshPlayer.id);
+                                    
+                                    // Re-fetch after migration just in case
+                                    const updatedPlayer = Database.getPlayerById(freshPlayer.id);
+                                    const docs = updatedPlayer.documents || [];
+                                    
+                                    if (docs.length === 0) {
+                                        docList.innerHTML = `<p class="text-muted text-center" style="font-size: 0.85rem; margin: 1rem 0;">No documents uploaded.</p>`;
+                                    } else {
+                                        docList.innerHTML = docs.map(doc => `
+                                            <div class="doc-item" style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem; background: var(--bg-light); color: var(--text-dark); border: 1px solid var(--border); border-radius: 10px;">
+                                                <div style="display: flex; align-items: center; gap: 0.75rem; flex: 1; min-width: 0;">
+                                                    <i class="fa-solid fa-file-pdf text-danger" style="font-size: 1.25rem;"></i>
+                                                    <div style="flex: 1; min-width: 0;">
+                                                        <p style="margin: 0; font-size: 0.85rem; font-weight: 600; color: var(--text-dark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${doc.name || 'Untitled'}</p>
+                                                        <small class="text-muted" style="font-size: 0.7rem;">${doc.uploadedAt ? new Date(doc.uploadedAt).toLocaleDateString() : 'N/A'}</small>
+                                                    </div>
+                                                </div>
+                                                <div style="display: flex; gap: 0.4rem;">
+                                                    <a href="${doc.url}" download="${doc.name}" class="btn btn-sm btn-outline-primary" style="padding: 0.25rem 0.5rem; border-radius: 6px; display: flex; align-items: center; justify-content: center;" title="Download">
+                                                        <i class="fa-solid fa-download"></i>
+                                                    </a>
+                                                    <button class="btn btn-sm btn-outline-danger delete-doc-btn" data-doc-id="${doc.id}" style="padding: 0.25rem 0.5rem; border-radius: 6px; display: flex; align-items: center; justify-content: center;" title="Delete">
+                                                        <i class="fa-solid fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        `).join('');
+                                        
+                                        docList.querySelectorAll('.delete-doc-btn').forEach(btn => {
+                                            btn.addEventListener('click', (e) => {
+                                                const docId = e.currentTarget.getAttribute('data-doc-id');
+                                                if (confirm('Are you sure you want to delete this document?')) {
+                                                    if (Database.deletePlayerDocument(player.id, docId)) {
+                                                        loadPlayerDocs();
+                                                    }
+                                                }
+                                            });
+                                        });
+                                    }
+                                } catch (err) {
+                                    console.error('Error loading documents:', err);
                                 }
                             };
-                            reader.readAsDataURL(file);
-                        });
+                            
+                            loadPlayerDocs();
+                            
+                            // Setup Document Upload
+                            const docUploadBtn = document.getElementById('adminProfileUploadBtn');
+                            const docFileInput = document.getElementById('adminProfileDocFile');
+                            const docNameInput = document.getElementById('adminProfileDocName');
+                            const docMsg = document.getElementById('adminProfileUploadMsg');
+                            
+                            if (docUploadBtn && docUploadBtn.parentNode) {
+                                const newBtn = docUploadBtn.cloneNode(true);
+                                docUploadBtn.parentNode.replaceChild(newBtn, docUploadBtn);
+                                if (docFileInput) docFileInput.value = '';
+                                if (docNameInput) docNameInput.value = '';
+                                if (docMsg) docMsg.style.display = 'none';
 
-                        // Populate Attendance History
-                        const attendanceTbody = document.querySelector('#adminPlayerAttendanceTable tbody');
-                        const history = Database.getPlayerAttendance(player.id);
-                        if (history.length === 0) {
-                            attendanceTbody.innerHTML = `<tr><td colspan="3" class="text-center text-muted">No records found.</td></tr>`;
-                        } else {
-                            attendanceTbody.innerHTML = history.slice(0, 10).map(record => `
-                                <tr>
-                                    <td>${record.date}</td>
-                                    <td>${record.time}</td>
-                                    <td><span class="badge badge-success">${record.status}</span></td>
-                                </tr>
-                            `).join('');
+                                newBtn.addEventListener('click', (ev) => {
+                                    ev.preventDefault();
+                                    const file = docFileInput ? docFileInput.files[0] : null;
+                                    const docName = docNameInput ? docNameInput.value.trim() : '';
+                                    
+                                    if (!file) { alert('Please select a file to upload.'); return; }
+                                    if (!docName) { alert('Please enter a name for the document.'); return; }
+
+                                    console.log('Starting upload:', docName, file.name);
+                                    // Removed diagnostic alert to avoid annoying the user, 
+                                    // but kept the log and the logic. 
+                                    // Actually, let's add a small status update in the UI instead.
+                                    if (docMsg) {
+                                        docMsg.textContent = 'Reading file...';
+                                        docMsg.style.display = 'block';
+                                        docMsg.className = 'text-muted mt-1';
+                                    }
+
+                                    const reader = new FileReader();
+                                    reader.onload = (e) => {
+                                        const base64 = e.target.result;
+                                        const result = Database.addPlayerDocument(player.id, docName, base64);
+                                        
+                                        if (result && result.success) {
+                                            if (docMsg) {
+                                                docMsg.textContent = 'Document uploaded successfully!';
+                                                docMsg.style.display = 'block';
+                                                docMsg.className = 'text-success mt-1';
+                                                setTimeout(() => { if(docMsg) docMsg.style.display = 'none'; }, 3000);
+                                            }
+                                            if (docFileInput) docFileInput.value = '';
+                                            if (docNameInput) docNameInput.value = '';
+                                            loadPlayerDocs();
+                                        } else {
+                                            const errorMsg = result ? result.message : 'Unknown error occurred.';
+                                            alert('Upload failed: ' + errorMsg);
+                                            if (docMsg) {
+                                                docMsg.textContent = 'Upload failed: ' + errorMsg;
+                                                docMsg.style.display = 'block';
+                                                docMsg.className = 'text-danger mt-1';
+                                            }
+                                        }
+                                    };
+                                    reader.onerror = () => {
+                                        alert('Error reading the selected file.');
+                                    };
+                                    reader.readAsDataURL(file);
+                                });
+                            }
+
+                            // Populate History Tables
+                            const populateTable = (id, history, colCount) => {
+                                const tbody = document.querySelector(`#${id} tbody`);
+                                if (!tbody) return;
+                                if (!history || history.length === 0) {
+                                    tbody.innerHTML = `<tr><td colspan="${colCount}" class="text-center text-muted">No records found.</td></tr>`;
+                                } else {
+                                    tbody.innerHTML = history.slice(0, 10).map(record => {
+                                        if (id === 'adminPlayerAttendanceTable') {
+                                            return `<tr><td>${record.date}</td><td>${record.time}</td><td><span class="badge badge-success">${record.status}</span></td></tr>`;
+                                        } else {
+                                            const d = new Date(record.date);
+                                            return `<tr><td><div style="line-height:1.2;">${d.toLocaleDateString()}<br><small class="text-muted">${d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</small></div></td><td class="text-primary font-weight-bold">₹${record.amount}</td><td>${record.paymentType}</td><td>${record.method}</td></tr>`;
+                                        }
+                                    }).join('');
+                                }
+                            };
+
+                            populateTable('adminPlayerAttendanceTable', Database.getPlayerAttendance(player.id), 3);
+                            populateTable('adminPlayerPaymentsTable', Database.getPlayerPayments(player.id), 4);
+
+                            // Finally, show modal
+                            adminProfileModal.classList.add('show');
+                        } catch (err) {
+                            console.error('Error populating player profile:', err);
+                            alert('Sorry, there was an error opening the player profile.');
                         }
-
-                        // Populate Payment History
-                        const paymentsTbody = document.querySelector('#adminPlayerPaymentsTable tbody');
-                        const payments = Database.getPlayerPayments(player.id);
-                        if (payments.length === 0) {
-                            paymentsTbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted">No records found.</td></tr>`;
-                        } else {
-                            paymentsTbody.innerHTML = payments.slice(0, 10).map(payment => {
-                                // Default payment time to start of day if not stringified as ISO, standardizing.
-                                const dateObj = new Date(payment.date);
-                                const dStr = dateObj.toLocaleDateString();
-                                const tStr = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                                
-                                return `
-                                <tr>
-                                    <td><div style="line-height:1.2;">${dStr}<br><small class="text-muted">${tStr}</small></div></td>
-                                    <td class="text-primary font-weight-bold">₹${payment.amount}</td>
-                                    <td>${payment.paymentType}</td>
-                                    <td>${payment.method}</td>
-                                </tr>
-                                `;
-                            }).join('');
-                        }
-
-                        // Show Modal
-                        adminProfileModal.classList.add('show');
                     }
                 });
             });
@@ -899,28 +1001,56 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (title && subtitle) {
                 const saveBanner = (finalUrl) => {
-                    Database.addBanner(finalUrl, title, subtitle, redirectUrl);
-                    imageInput.value = '';
-                    urlInput.value = '';
-                    titleInput.value = '';
-                    subtitleInput.value = '';
-                    redirectInput.value = '';
-                    loadAllBanners(); // refresh table
-                    
-                    const submitBtn = addBannerForm.querySelector('button[type="submit"]');
-                    const originalText = submitBtn.textContent;
-                    submitBtn.textContent = 'Added!';
-                    submitBtn.classList.add('btn-success');
-                    setTimeout(() => {
-                        submitBtn.textContent = originalText;
-                        submitBtn.classList.remove('btn-success');
-                    }, 2000);
+                    try {
+                        Database.addBanner(finalUrl, title, subtitle, redirectUrl);
+                        imageInput.value = '';
+                        urlInput.value = '';
+                        titleInput.value = '';
+                        subtitleInput.value = '';
+                        redirectInput.value = '';
+                        loadAllBanners(); // refresh table
+                        
+                        const submitBtn = addBannerForm.querySelector('button[type="submit"]');
+                        if (submitBtn) {
+                            const originalText = submitBtn.textContent;
+                            submitBtn.textContent = 'Added!';
+                            submitBtn.classList.add('btn-success');
+                            setTimeout(() => {
+                                submitBtn.textContent = originalText;
+                                submitBtn.classList.remove('btn-success');
+                            }, 2000);
+                        }
+                    } catch (error) {
+                        console.error('Error saving banner:', error);
+                        alert('Image size might be too large for storage limit. Please try a smaller image or an Image URL instead.');
+                    }
                 };
 
                 if (file) {
                     const reader = new FileReader();
                     reader.onload = function(event) {
-                        saveBanner(event.target.result);
+                        const img = new Image();
+                        img.onload = function() {
+                            let width = img.width;
+                            let height = img.height;
+                            const MAX_WIDTH = 1200;
+                            
+                            if (width > MAX_WIDTH) {
+                                height = Math.round((height * MAX_WIDTH) / width);
+                                width = MAX_WIDTH;
+                            }
+                            const canvas = document.createElement('canvas');
+                            canvas.width = width;
+                            canvas.height = height;
+                            
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(img, 0, 0, width, height);
+                            saveBanner(canvas.toDataURL('image/jpeg', 0.8));
+                        };
+                        img.onerror = function() {
+                            saveBanner(event.target.result); // Fallback
+                        };
+                        img.src = event.target.result;
                     };
                     reader.readAsDataURL(file);
                 } else {
@@ -928,6 +1058,96 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         });
+    }
+
+    // --- Manage Our Players Logic ---
+    const manageOurPlayersModal = document.getElementById('manageOurPlayersModal');
+    const openManageOurPlayersNav = document.getElementById('openManageOurPlayersNav');
+    const closeManageOurPlayersModal = document.getElementById('closeManageOurPlayersModal');
+    const ourPlayersTableBody = document.getElementById('ourPlayersTableBody');
+    const addOurPlayerForm = document.getElementById('addOurPlayerForm');
+
+    window.loadOurPlayersTable = () => {
+        if (!ourPlayersTableBody) return;
+        const players = Database.getOurPlayers();
+        
+        if (players.length === 0) {
+            ourPlayersTableBody.innerHTML = `<tr><td colspan="4" class="text-center text-muted">No players found in this section.</td></tr>`;
+            return;
+        }
+
+        ourPlayersTableBody.innerHTML = players.map(p => `
+            <tr>
+                <td><img src="${p.imageUrl}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 50%;" alt="${p.name}"></td>
+                <td><strong>${p.name}</strong></td>
+                <td>${p.achievement}</td>
+                <td>
+                    <button class="btn btn-sm text-danger delete-our-player-btn" data-id="${p.id}" style="background: transparent; border: 1px solid var(--error); padding: 0.25rem 0.5rem;">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+
+        // Delete listener
+        document.querySelectorAll('.delete-our-player-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const id = e.currentTarget.getAttribute('data-id');
+                if (confirm('Remove this player from the landing page?')) {
+                    Database.deleteOurPlayer(id);
+                    window.loadOurPlayersTable();
+                }
+            });
+        });
+    };
+
+    if (manageOurPlayersModal && openManageOurPlayersNav && closeManageOurPlayersModal && addOurPlayerForm) {
+        openManageOurPlayersNav.addEventListener('click', (e) => {
+            e.preventDefault();
+            window.loadOurPlayersTable();
+            manageOurPlayersModal.classList.add('show');
+        });
+
+        closeManageOurPlayersModal.addEventListener('click', () => {
+            manageOurPlayersModal.classList.remove('show');
+        });
+
+        manageOurPlayersModal.addEventListener('click', (e) => {
+            if (e.target === manageOurPlayersModal) {
+                manageOurPlayersModal.classList.remove('show');
+            }
+        });
+
+        addOurPlayerForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const nameInput = document.getElementById('ourPlayerName');
+            const achievementInput = document.getElementById('ourPlayerAchievement');
+            const urlInput = document.getElementById('ourPlayerImageUrl');
+
+            const name = nameInput.value.trim();
+            const achievement = achievementInput.value.trim();
+            const url = urlInput.value.trim();
+
+            if (name && achievement && url) {
+                Database.addOurPlayer(name, achievement, url);
+                nameInput.value = '';
+                achievementInput.value = '';
+                urlInput.value = '';
+                window.loadOurPlayersTable();
+
+                const submitBtn = addOurPlayerForm.querySelector('button[type="submit"]');
+                const originalText = submitBtn.innerHTML;
+                submitBtn.innerHTML = '<i class="fa-solid fa-check"></i> Added!';
+                submitBtn.classList.replace('btn-primary', 'btn-success');
+                setTimeout(() => {
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.classList.replace('btn-success', 'btn-primary');
+                }, 2000);
+            }
+        });
+
+        // Initial load
+        window.loadOurPlayersTable();
     }
 
     // Manage Announcements / Chat Room Logic (Removed - HTML was deleted)
@@ -1194,22 +1414,61 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    let currentEventTab = 'upcoming';
+
     window.loadEventsTable = () => {
         if (!allEventsTableBody) return;
-        const events = Database.getEvents().sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
-        if (events.length === 0) {
-            allEventsTableBody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">No events created.</td></tr>`;
+        
+        const now = new Date();
+        const events = Database.getEvents().sort((a,b) => new Date(b.date) - new Date(a.date));
+        
+        let filteredEvents = [];
+        if (currentEventTab === 'upcoming') {
+            filteredEvents = events.filter(ev => new Date(ev.date) >= now);
+        } else {
+            filteredEvents = events.filter(ev => new Date(ev.date) < now).reverse(); // Past events newest first
+        }
+
+        if (filteredEvents.length === 0) {
+            allEventsTableBody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">No ${currentEventTab} events found.</td></tr>`;
             return;
         }
 
-        allEventsTableBody.innerHTML = events.map(ev => {
+        allEventsTableBody.innerHTML = filteredEvents.map(ev => {
             const regs = Database.getEventRegistrationsForEvent(ev.id);
+            const isPast = new Date(ev.date) < now;
+            const albumUrls = ev.albumUrls || (ev.albumUrl ? [ev.albumUrl] : []);
+            
+            let linksHtml = '';
+            if (isPast) {
+                linksHtml = `
+                <div class="album-links-container" style="margin-top: 0.5rem;">
+                    <ul style="list-style: none; padding: 0; margin: 0 0 0.5rem 0; font-size: 0.75rem;">
+                        ${albumUrls.map((url, idx) => `
+                            <li style="display: flex; justify-content: space-between; align-items: center; background: var(--surface-light); padding: 2px 5px; border-radius: 4px; margin-bottom: 2px; border: 1px solid var(--border);">
+                                <a href="${url}" target="_blank" style="text-overflow: ellipsis; overflow: hidden; white-space: nowrap; max-width: 150px; color: var(--primary);">Link ${idx + 1}</a>
+                                <button class="btn-delete-link text-danger" data-id="${ev.id}" data-index="${idx}" style="background: none; border: none; padding: 0 4px; cursor: pointer;" title="Delete Link">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            </li>
+                        `).join('')}
+                    </ul>
+                    <div style="display: flex; gap: 0.4rem; align-items: center;">
+                        <input type="text" class="form-control form-control-sm album-url-input" 
+                               data-id="${ev.id}" placeholder="Add New Drive Link" 
+                               style="font-size: 0.75rem; padding: 0.2rem 0.4rem; height: auto;">
+                        <button class="btn btn-sm btn-primary add-album-link-btn" data-id="${ev.id}" style="padding: 0.2rem 0.4rem; font-size: 0.75rem;">Add</button>
+                    </div>
+                </div>`;
+            }
+
             return `
             <tr>
                 <td><img src="${ev.bannerUrl}" style="width: 60px; height: 40px; object-fit: cover; border-radius: 4px;" alt="Banner"></td>
                 <td>
                     <strong>${ev.title}</strong><br>
                     <small class="text-muted"><i class="fa-regular fa-calendar"></i> ${new Date(ev.date).toLocaleDateString()}</small>
+                    ${linksHtml}
                 </td>
                 <td>${ev.requiresPayment ? '₹' + ev.fee : '<span class="text-success"><small>Free</small></span>'}</td>
                 <td>
@@ -1223,6 +1482,50 @@ document.addEventListener('DOMContentLoaded', () => {
             </tr>
             `;
         }).join('');
+
+        // Tab Switching Logic
+        document.querySelectorAll('.event-tab-btn').forEach(btn => {
+            // Remove previous listeners by cloning if necessary, or just check and update
+            btn.onclick = () => {
+                document.querySelectorAll('.event-tab-btn').forEach(b => {
+                    b.classList.remove('btn-primary');
+                    b.classList.add('btn-outline-primary');
+                });
+                btn.classList.remove('btn-outline-primary');
+                btn.classList.add('btn-primary');
+                currentEventTab = btn.getAttribute('data-tab');
+                window.loadEventsTable();
+            };
+        });
+
+        // Add Album Link Logic
+        document.querySelectorAll('.add-album-link-btn').forEach(btn => {
+            btn.onclick = () => {
+                const id = btn.getAttribute('data-id');
+                const input = document.querySelector(`.album-url-input[data-id="${id}"]`);
+                const url = input.value.trim();
+                if (!url) return alert("Please enter a valid link.");
+                if (Database.addEventAlbumLink(id, url)) {
+                    btn.textContent = 'Added!';
+                    btn.classList.replace('btn-primary', 'btn-success');
+                    setTimeout(() => {
+                        window.loadEventsTable();
+                    }, 1000);
+                }
+            };
+        });
+
+        // Delete Album Link Logic (Admin Only)
+        document.querySelectorAll('.btn-delete-link').forEach(btn => {
+            btn.onclick = () => {
+                if (!confirm("Are you sure you want to delete this link?")) return;
+                const id = btn.getAttribute('data-id');
+                const index = parseInt(btn.getAttribute('data-index'));
+                if (Database.deleteEventAlbumLink(id, index)) {
+                    window.loadEventsTable();
+                }
+            };
+        });
 
         // Delete Listener
         document.querySelectorAll('.delete-event-btn').forEach(btn => {
@@ -2929,6 +3232,243 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Wire up all three (existing banner config at end)
-    BANNER_CONFIGS.forEach(attachAdvisor);
+    if (typeof BANNER_CONFIGS !== 'undefined') {
+        BANNER_CONFIGS.forEach(attachAdvisor);
+    }
     });
 })();
+    
+    // ---- NEW MODAL LOGIC ----
+    document.addEventListener('DOMContentLoaded', () => {
+    const dietPlansModal = document.getElementById('dietPlansModal');
+    const openDietPlansNav = document.getElementById('openDietPlansNav');
+    const closeDietPlansModal = document.getElementById('closeDietPlansModal');
+
+    if (openDietPlansNav && dietPlansModal) {
+        openDietPlansNav.addEventListener('click', (e) => {
+            e.preventDefault();
+            dietPlansModal.classList.add('show');
+        });
+    }
+    if (closeDietPlansModal && dietPlansModal) {
+        closeDietPlansModal.addEventListener('click', () => dietPlansModal.classList.remove('show'));
+    }
+
+    // Finance and Expense Modals Already Declared, just adding listeners:
+    if (openFinanceNav && adminFinanceModal) {
+        openFinanceNav.addEventListener('click', (e) => {
+            e.preventDefault();
+            adminFinanceModal.classList.add('show');
+        });
+    }
+    if (closeAdminFinanceModal && adminFinanceModal) {
+        closeAdminFinanceModal.addEventListener('click', () => adminFinanceModal.classList.remove('show'));
+    }
+
+    if (openAddExpenseBtn && adminAddExpenseModal) {
+        openAddExpenseBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (adminFinanceModal) adminFinanceModal.classList.remove('show');
+            adminAddExpenseModal.classList.add('show');
+        });
+    }
+    if (closeAdminAddExpenseModal && adminAddExpenseModal) {
+        closeAdminAddExpenseModal.addEventListener('click', () => adminAddExpenseModal.classList.remove('show'));
+    }
+
+    // Ensure events and announcements modals from previous sessions also have listeners if they exist
+    const manageEventsModal = document.getElementById('manageEventsModal');
+    const openManageEventsNav = document.getElementById('openManageEventsNav');
+    const closeManageEventsModal = document.getElementById('closeManageEventsModal');
+
+    if (openManageEventsNav && manageEventsModal) {
+        openManageEventsNav.addEventListener('click', (e) => {
+            e.preventDefault();
+            manageEventsModal.classList.add('show');
+        });
+    }
+    if (closeManageEventsModal && manageEventsModal) {
+        closeManageEventsModal.addEventListener('click', () => manageEventsModal.classList.remove('show'));
+    }
+
+    const manageAnnouncementsModal = document.getElementById('manageAnnouncementsModal');
+    const openManageAnnouncementsNav = document.getElementById('openManageAnnouncementsNav');
+    const closeManageAnnouncementsModal = document.getElementById('closeManageAnnouncementsModal');
+
+    if (openManageAnnouncementsNav && manageAnnouncementsModal) {
+        openManageAnnouncementsNav.addEventListener('click', (e) => {
+            e.preventDefault();
+            manageAnnouncementsModal.classList.add('show');
+        });
+    }
+    if (closeManageAnnouncementsModal && manageAnnouncementsModal) {
+        closeManageAnnouncementsModal.addEventListener('click', () => manageAnnouncementsModal.classList.remove('show'));
+    }
+
+    const enquiriesModal = document.getElementById('enquiriesModal');
+    const openEnquiriesNav = document.getElementById('openEnquiriesNav');
+    const closeEnquiriesModal = document.getElementById('closeEnquiriesModal');
+
+    if (openEnquiriesNav && enquiriesModal) {
+        openEnquiriesNav.addEventListener('click', (e) => {
+            e.preventDefault();
+            enquiriesModal.classList.add('show');
+        });
+    }
+    if (closeEnquiriesModal && enquiriesModal) {
+        closeEnquiriesModal.addEventListener('click', () => enquiriesModal.classList.remove('show'));
+    }
+
+    // --- Manage Events ---
+    const renderEventsTable = () => {
+        const tbody = document.querySelector('#allEventsTable tbody');
+        if (!tbody) return;
+        const events = Database.getEvents();
+        if (events.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">No active events.</td></tr>`;
+            return;
+        }
+        tbody.innerHTML = events.map(e => `
+            <tr>
+                <td><img src="${e.bannerUrl}" style="width:50px; height:50px; object-fit:cover; border-radius:4px;"></td>
+                <td>
+                    <strong>${e.title}</strong><br>
+                    <small class="text-muted"><i class="fa-regular fa-calendar"></i> ${e.date}</small>
+                </td>
+                <td>${e.requiresPayment ? '₹' + e.fee : '<span class="badge badge-success">Free</span>'}</td>
+                <td>${Database.getEventRegistrationsForEvent(e.id).length}</td>
+                <td><button class="icon-btn text-danger delete-event-btn" data-id="${e.id}"><i class="fa-solid fa-trash"></i></button></td>
+            </tr>
+        `).join('');
+
+        document.querySelectorAll('.delete-event-btn').forEach(btn => {
+            btn.addEventListener('click', (ev) => {
+                const id = ev.currentTarget.dataset.id;
+                if (confirm('Are you sure you want to delete this event?')) {
+                    Database.deleteEvent(id);
+                    renderEventsTable();
+                }
+            });
+        });
+    };
+
+    if (openManageEventsNav) {
+        openManageEventsNav.addEventListener('click', () => {
+            renderEventsTable();
+        });
+    }
+
+    const addEventForm = document.getElementById('addEventForm');
+    const newEventRequiresFee = document.getElementById('newEventRequiresFee');
+    const newEventFee = document.getElementById('newEventFee');
+    const extendedPaymentDetails = document.getElementById('extendedPaymentDetails');
+
+    if (newEventRequiresFee && newEventFee && extendedPaymentDetails) {
+        newEventRequiresFee.addEventListener('change', (e) => {
+            const isChecked = e.target.checked;
+            newEventFee.style.display = isChecked ? 'inline-block' : 'none';
+            extendedPaymentDetails.style.display = isChecked ? 'flex' : 'none';
+            if (!isChecked) {
+                newEventFee.value = '';
+                document.getElementById('newEventUpiId').value = '';
+                document.getElementById('newEventPaymentQr').value = '';
+            }
+        });
+    }
+
+    if (addEventForm) {
+        addEventForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const title = document.getElementById('newEventTitle').value.trim();
+            const date = document.getElementById('newEventDate').value;
+            const desc = document.getElementById('newEventDesc').value.trim();
+            const requiresFee = newEventRequiresFee.checked;
+            const fee = newEventFee.value;
+            const upiId = document.getElementById('newEventUpiId').value.trim();
+            
+            const bannerFile = document.getElementById('newEventBanner').files[0];
+            const qrFile = document.getElementById('newEventPaymentQr') ? document.getElementById('newEventPaymentQr').files[0] : null;
+
+            if (!bannerFile) return alert('Event banner is required!');
+
+            const readAsDataURL = (file) => new Promise(resolve => {
+                if (!file) { resolve(''); return; }
+                const reader = new FileReader();
+                reader.onload = ev => resolve(ev.target.result);
+                reader.readAsDataURL(file);
+            });
+
+            Promise.all([readAsDataURL(bannerFile), readAsDataURL(qrFile)]).then(([bannerUrl, qrUrl]) => {
+                Database.addEvent(title, date, desc, bannerUrl, requiresFee, fee, qrUrl, upiId);
+                addEventForm.reset();
+                newEventRequiresFee.dispatchEvent(new Event('change')); // reset UI
+                renderEventsTable();
+                alert('Event created successfully!');
+            });
+        });
+    }
+
+    // --- Manage Announcements ---
+    const renderAnnouncementsTable = () => {
+        const tbody = document.querySelector('#allAnnouncementsTable tbody');
+        if (!tbody) return;
+        const announcements = Database.getAnnouncements();
+        if (announcements.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">No announcements found.</td></tr>`;
+            return;
+        }
+        tbody.innerHTML = announcements.map(a => `
+            <tr>
+                <td>${a.imageUrl ? '<img src="' + a.imageUrl + '" style="width:50px;height:50px;object-fit:cover;border-radius:4px;">' : '<span class="text-muted">No Image</span>'}</td>
+                <td><strong>${a.title}</strong><br><small class="text-muted">${a.message}</small></td>
+                <td><span class="badge" style="background:var(--primary);color:var(--text-light);">${a.targetAudience}</span></td>
+                <td><small>${new Date(a.date).toLocaleDateString()}</small></td>
+                <td><button class="icon-btn text-danger delete-ann-btn" data-id="${a.id}"><i class="fa-solid fa-trash"></i></button></td>
+            </tr>
+        `).join('');
+
+        document.querySelectorAll('.delete-ann-btn').forEach(btn => {
+            btn.addEventListener('click', (ev) => {
+                const id = ev.currentTarget.dataset.id;
+                if (confirm('Delete announcement?')) {
+                    Database.deleteAnnouncement(id);
+                    renderAnnouncementsTable();
+                }
+            });
+        });
+    };
+
+    if (openManageAnnouncementsNav) {
+        openManageAnnouncementsNav.addEventListener('click', () => {
+            renderAnnouncementsTable();
+        });
+    }
+
+    const addAnnouncementForm = document.getElementById('addAnnouncementForm');
+    if (addAnnouncementForm) {
+        addAnnouncementForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const title = document.getElementById('newAnnTitle').value.trim();
+            const audience = document.getElementById('newAnnAudience').value;
+            const message = document.getElementById('newAnnMessage').value.trim();
+            const fileInput = document.getElementById('newAnnImage');
+
+            const saveAnn = (imgUrl = '') => {
+                Database.addAnnouncement(title, message, audience, imgUrl);
+                addAnnouncementForm.reset();
+                renderAnnouncementsTable();
+                alert('Announcement posted!');
+            };
+
+            if (fileInput && fileInput.files.length > 0) {
+                const reader = new FileReader();
+                reader.onload = ev => saveAnn(ev.target.result);
+                reader.readAsDataURL(fileInput.files[0]);
+            } else {
+                saveAnn();
+            }
+        });
+    }
+
+});
+

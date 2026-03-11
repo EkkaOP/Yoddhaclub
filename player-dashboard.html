@@ -56,13 +56,16 @@
         </header>
 
         <div class="dashboard-content">
-            <div class="welcome-banner">
-                <div class="banner-content">
-                    <h3>Ready for your next session?</h3>
-                    <p>Check out our new HIIT masterclass scheduled for this weekend.</p>
-                    <button class="btn btn-primary mt-2">View Events</button>
+            <!-- Subscription alerts injected by JS -->
+            <div id="subscriptionAlerts" style="margin-bottom: 1rem;"></div>
+            <!-- Sliding Banner Section for Player Dashboard -->
+            <div class="banner-section" style="border-radius: var(--radius); margin-bottom: 1.5rem; overflow: hidden; position: relative;">
+                <div class="carousel-track">
+                    <!-- Banners injected by JS -->
                 </div>
-                <img src="https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?auto=format&fit=crop&q=80&w=300" alt="Training" class="banner-img">
+                <div class="carousel-dots">
+                    <!-- Dots injected by JS -->
+                </div>
             </div>
 
             <!-- Today's Workout Tasks -->
@@ -79,6 +82,12 @@
             <div class="dash-cards-grid event-cards" id="playerEventsList">
                 <!-- Populated by JS -->
                 <p class="text-muted w-100 text-center">No upcoming events at the moment.</p>
+            </div>
+
+            <h3 class="section-title">Past Events & Photos</h3>
+            <div class="dash-cards-grid event-cards" id="playerPastEventsList">
+                <!-- Populated by JS -->
+                <p class="text-muted w-100 text-center">No past events found.</p>
             </div>
 
             <!-- New Section for QR Code -->
@@ -138,12 +147,12 @@
 
                 <div class="form-group" id="regFormScreenshotGroup" style="display: none; margin-bottom: 1.5rem;">
                     <label style="display: block; font-weight: 500; font-size: 0.85rem; margin-bottom: 0.5rem; color: var(--text-dark);">Upload Payment Screenshot (Required)</label>
-                    <input type="file" id="regFormScreenshot" accept="image/*" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; background: white; font-size: 0.9rem;">
+                    <input type="file" id="regFormScreenshot" accept="image/*" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-light); color: var(--text-dark); font-size: 0.9rem;">
                 </div>
 
                 <div class="form-group" style="margin-bottom: 1.5rem;">
                     <label style="display: block; font-weight: 500; font-size: 0.85rem; margin-bottom: 0.5rem; color: var(--text-dark);">Upload Fighter Photo (Required)</label>
-                    <input type="file" id="regFormPhoto" accept="image/*" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; background: white; font-size: 0.9rem;">
+                    <input type="file" id="regFormPhoto" accept="image/*" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-light); color: var(--text-dark); font-size: 0.9rem;">
                 </div>
 
                 <button type="submit" class="btn btn-primary btn-full"><i class="fa-solid fa-paper-plane"></i> Submit Registration</button>
@@ -161,7 +170,7 @@
             </div>
             <h4 id="playerNameDisplay">Player Name</h4>
             <p id="playerIdDisplay" class="text-muted">ID: ---</p>
-            <span class="badge badge-success mt-2">Active Member</span>
+            <span class="badge badge-success mt-2" id="playerQrStatus">Active Member</span>
         </div>
     </div>
 
@@ -173,7 +182,7 @@
             
             <div class="text-center mb-3">
                 <div class="user-profile mb-2" style="display: inline-block;">
-                    <img id="profileAvatar" src="https://ui-avatars.com/api/?name=Player&background=FF0000&color=fff" alt="Player" style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid var(--primary);">
+                    <img id="profileAvatar" src="https://ui-avatars.com/api/?name=Player&background=FF0000&color=fff" alt="Player" style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid var(--primary); cursor: pointer;" onclick="openImageViewer(this.src)" title="Click to view full image">
                 </div>
                 <h4 id="profileName" class="font-weight-bold" style="font-size: 1.25rem;">Player Name</h4>
                 <p id="profileId" class="text-muted">CLUB-PLAYER-0000</p>
@@ -187,6 +196,10 @@
                 <div style="display: flex; justify-content: space-between; margin-bottom: 0.75rem;">
                     <span class="text-muted font-weight-bold">Joined:</span>
                     <span id="profileJoined" class="font-weight-bold">N/A</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.75rem; padding-top: 0.75rem; border-top: 1px dashed var(--border);">
+                    <span class="text-muted font-weight-bold">Expiry Date:</span>
+                    <span id="profileExpiryDate" class="font-weight-bold text-dark">N/A</span>
                 </div>
                 <hr style="border-top: 1px dashed var(--border); border-bottom: none; margin: 0.75rem 0;">
                 <div style="display: flex; justify-content: space-between; margin-bottom: 0.75rem;">
@@ -208,14 +221,14 @@
                 </div>
             </div>
 
-            <!-- Certificate / Document Section -->
-            <div id="profileCertSection" style="margin-top: 1rem; display: none;">
-                <h5 style="font-size: 0.95rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-dark);">
-                    <i class="fa-solid fa-certificate" style="color: var(--primary);"></i> My Certificate / Document
+            <!-- Documents Section -->
+            <div id="profileCertSection" style="margin-top: 1rem; display: none; background: var(--primary-light); border: 1px dashed var(--primary); padding: 1.25rem; border-radius: var(--radius); flex-direction: column; align-items: stretch;">
+                <h5 style="font-size: 0.95rem; font-weight: 700; margin: 0 0 1rem; color: var(--text-dark); display: flex; align-items: center; gap: 0.6rem;">
+                    <i class="fa-solid fa-folder-open" style="color: var(--primary);"></i> My Documents & Certificates
                 </h5>
-                <a id="profileCertLink" href="#" download="My_Certificate" class="btn btn-outline btn-full" style="border-color: var(--primary); color: var(--primary); display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
-                    <i class="fa-solid fa-file-arrow-down"></i> View &amp; Download Certificate
-                </a>
+                <div id="playerDocList" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                    <!-- Populated by JS -->
+                </div>
             </div>
 
             <!-- Action Buttons -->
@@ -226,7 +239,7 @@
             </div>
 
             <!-- Social Media Links Section -->
-            <div style="margin-top:1.25rem;background:var(--bg-light);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;">
+            <div style="margin-top:1.25rem;background:var(--surface-light);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;">
                 <h5 style="margin:0 0 0.75rem;font-size:0.95rem;font-weight:700;color:var(--text-dark);display:flex;align-items:center;gap:0.5rem;">
                     <i class="fa-solid fa-share-nodes" style="color:var(--primary);"></i> My Social Links
                 </h5>
@@ -497,6 +510,15 @@
         </h3>
         <p class="text-center text-muted mb-3" style="font-size:0.88rem;">Complete challenges to earn badges and rewards from your coach!</p>
         <div id="playerChallengesStandaloneContainer" style="max-height:520px;overflow-y:auto;"></div>
+    </div>
+</div>
+
+<!-- ===== IMAGE VIEWER MODAL ===== -->
+<div class="qr-modal" id="imageViewerModal" style="z-index: 2000;">
+    <div class="qr-modal-content" style="max-width: 90vw; max-height: 90vh; width: auto; background: transparent; border: none; box-shadow: none; padding: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+        <span class="close-modal" id="closeImageViewerModal" style="color: white; right: 10px; top: -30px; font-size: 2rem; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">&times;</span>
+        <img id="imageViewerImg" src="" alt="Viewed Image" style="max-width: 100%; max-height: 75vh; object-fit: contain; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
+        <a id="imageViewerDownloadBtn" href="#" download="image.jpg" class="btn btn-primary mt-3" style="display: inline-flex; gap: 0.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.5);"><i class="fa-solid fa-download"></i> Download Image</a>
     </div>
 </div>
 
