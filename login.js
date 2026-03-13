@@ -67,6 +67,19 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    function populateSignupPlans() {
+        const signupPlanSelect = document.getElementById('signupPlan');
+        if (!signupPlanSelect) return;
+        const plans = Database.getFeePlans() || [];
+        signupPlanSelect.innerHTML = '<option value="">Select Plan...</option>';
+        plans.forEach(p => {
+            const opt = document.createElement('option');
+            opt.value = p.className;
+            opt.textContent = `${p.className} - ${p.duration} (₹${p.price})`;
+            signupPlanSelect.appendChild(opt);
+        });
+    }
+
     if(showSignupLink && signupForm && loginForm) {
         const roleSelection = document.querySelector('.role-selection');
 
@@ -76,6 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
             signupForm.style.display = 'block';
             if (roleSelection) roleSelection.style.display = 'none';
             populateSignupBatches();
+            populateSignupPlans();
         });
 
         backToLoginLink.addEventListener('click', (e) => {
@@ -97,7 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const mobile = document.getElementById('signupMobile').value.trim();
             const dob = document.getElementById('signupDob').value;
             const gender = document.getElementById('signupGender').value;
-            const plan = document.getElementById('signupPlan').value.trim();
+            const plan = document.getElementById('signupPlan').value;
             const batch = signupBatchSelect.value;
             const password = document.getElementById('signupPassword').value;
             const confirmPassword = document.getElementById('signupConfirmPassword').value;

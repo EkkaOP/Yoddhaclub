@@ -26,7 +26,7 @@
     </header>
 
     <main>
-        <!-- Sliding Banner Section -->
+        <!-- Banner Section -->
         <section class="banner-section fade-element">
             <div class="carousel-track">
                 <!-- Banners injected by JS -->
@@ -36,49 +36,10 @@
             </div>
         </section>
 
-        <!-- Coaches Section -->
-        <section class="section coaches-section fade-element">
-            <h2 class="section-title">Our Coaches</h2>
-            <div class="horizontal-scroll">
-                <div class="card coach-card">
-                    <img src="https://images.unsplash.com/photo-1594381898411-846e7d193883?auto=format&fit=crop&q=80&w=400" alt="Coach Marcus">
-                    <div class="card-content">
-                        <h3>Marcus Johnson</h3>
-                        <p class="specialty">Strength & Conditioning</p>
-                        <p class="desc">10+ years experience in professional athletic training.</p>
-                    </div>
-                </div>
-                <div class="card coach-card">
-                    <img src="https://images.unsplash.com/photo-1548690312-e3b507d8c110?auto=format&fit=crop&q=80&w=400" alt="Coach Sarah">
-                    <div class="card-content">
-                        <h3>Sarah Wei</h3>
-                        <p class="specialty">Yoga & Flexibility</p>
-                        <p class="desc">Certified Ashtanga instructor focusing on mobility.</p>
-                    </div>
-                </div>
-                <div class="card coach-card">
-                    <img src="https://images.unsplash.com/photo-1581646743122-86105f9bf35a?auto=format&fit=crop&q=80&w=400" alt="Coach David">
-                    <div class="card-content">
-                        <h3>David Miller</h3>
-                        <p class="specialty">CrossFit Expert</p>
-                        <p class="desc">Former competitive athlete ready to push your boundaries.</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Events Section -->
-        <section class="section events-section" style="opacity:1; transform:none;">
-            <h2 class="section-title">Upcoming Events</h2>
-            <div class="cards-grid" id="publicEventsContainer">
-                <!-- Dynamically populated from the database -->
-            </div>
-        </section>
-
-        <!-- Past Events Section -->
-        <section class="section past-events-section" id="pastEventsSection" style="display: none;">
-            <h2 class="section-title">Past Events & Gallery</h2>
-            <div class="cards-grid" id="publicPastEventsContainer">
+        <!-- Our Players Section -->
+        <section class="section champions-section fade-element">
+            <h2 class="section-title">Our Players</h2>
+            <div class="horizontal-scroll" id="ourPlayersContainer">
                 <!-- Dynamically populated from the database -->
             </div>
         </section>
@@ -99,10 +60,34 @@
             </div>
         </section>
 
-        <!-- Our Players Section -->
-        <section class="section champions-section fade-element">
-            <h2 class="section-title">Our Players</h2>
-            <div class="horizontal-scroll" id="ourPlayersContainer">
+        <!-- Events Section -->
+        <section class="section events-section fade-element">
+            <h2 class="section-title">Upcoming Events</h2>
+            <div class="cards-grid" id="publicEventsContainer">
+                <!-- Dynamically populated from the database -->
+            </div>
+        </section>
+
+        <!-- Fee Chart Section (NEW) -->
+        <section class="section fee-chart-section fade-element">
+            <h2 class="section-title">Fee Plans</h2>
+            <div class="horizontal-scroll" id="feePlansContainer">
+                <!-- Dynamically populated from the database -->
+            </div>
+        </section>
+
+        <!-- Coaches Section -->
+        <section class="section coaches-section fade-element">
+            <h2 class="section-title">Our Coaches</h2>
+            <div class="horizontal-scroll" id="publicCoachesContainer" style="padding-bottom: 2rem;">
+                <!-- Dynamically populated from the database -->
+            </div>
+        </section>
+
+        <!-- Past Events Section -->
+        <section class="section past-events-section" id="pastEventsSection" style="display: none;">
+            <h2 class="section-title">Past Events & Gallery</h2>
+            <div class="cards-grid" id="publicPastEventsContainer">
                 <!-- Dynamically populated from the database -->
             </div>
         </section>
@@ -122,20 +107,28 @@
         </section>
     </main>
 
-    <!-- Footer -->
-    <footer>
-        <div class="footer-links">
-            <a href="#">About Club</a>
-            <a href="#">Contact</a>
-            <a href="#">Privacy Policy</a>
+    <!-- Footer Modal -->
+    <div id="footerPopupModal" class="footer-modal">
+        <div class="footer-modal-overlay" id="footerModalOverlay"></div>
+        <div class="footer-modal-content">
+            <button class="footer-modal-close" id="closeFooterModal">&times;</button>
+            <div id="footerModalBody">
+                <!-- Dynamic content goes here -->
+            </div>
         </div>
-        <div class="social-icons">
-            <a href="#"><i class="fa-brands fa-instagram"></i></a>
-            <a href="#"><i class="fa-brands fa-twitter"></i></a>
-            <a href="#"><i class="fa-brands fa-facebook"></i></a>
-        </div>
-        <div class="copyright">
-            &copy; 2026 Club Manager. All rights reserved.
+    </div>
+
+    <footer class="main-footer">
+        <div class="container">
+            <div class="footer-brand">
+                <h3>YODDHA CLUB</h3>
+            </div>
+            <div class="footer-nav">
+                <a href="javascript:void(0)" id="openAbout">About Club</a>
+                <a href="javascript:void(0)" id="openContact">Contact Us</a>
+                <a href="javascript:void(0)" id="openPrivacy">Privacy Policy</a>
+            </div>
+            <p class="footer-copyright">&copy; 2026 Yoddha Kickboxing & MMA Club. All Rights Reserved.</p>
         </div>
     </footer>
 

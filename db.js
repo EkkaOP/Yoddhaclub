@@ -54,6 +54,14 @@ class Database {
             ];
             localStorage.setItem('ourPlayers', JSON.stringify(defaultOurPlayers));
         }
+
+        if (!localStorage.getItem('feePlans')) {
+            const defaultFeePlans = [
+                { id: 'FEE-1', className: 'Kickboxing', timing: '06:00 AM - 07:30 AM', duration: '1 Month', price: '1500', description: 'Beginner to Intermediate levels' },
+                { id: 'FEE-2', className: 'MMA', timing: '07:30 AM - 09:00 AM', duration: '3 Months', price: '4000', description: 'Comprehensive combat training' }
+            ];
+            localStorage.setItem('feePlans', JSON.stringify(defaultFeePlans));
+        }
     }
 
     static getPlayers() {
@@ -80,23 +88,34 @@ class Database {
         const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
         // Check if already present today
-        const existing = attendance.find(a => a.playerId === playerId && a.date === dateStr);
-        if (existing) {
-            return { success: false, message: 'Attendance already marked for today.' };
+        const existingIdx = attendance.findIndex(a => a.playerId === playerId && a.date === dateStr);
+        
+        if (existingIdx !== -1) {
+            const record = attendance[existingIdx];
+            if (record.timeOut) {
+                return { success: false, message: 'Attendance already completed.', type: 'completed' };
+            }
+            // Record Check-Out
+            record.timeOut = timeStr;
+            localStorage.setItem('attendance', JSON.stringify(attendance));
+            return { success: true, record: record, type: 'checkout' };
         }
 
+        // Record Check-In
         const newRecord = {
             id: 'ATT-' + Date.now(),
             playerId,
             playerName,
             date: dateStr,
-            time: timeStr,
+            timeIn: timeStr,
+            time: timeStr, // Keep for backward compatibility
+            timeOut: '',
             status: 'Present'
         };
 
         attendance.push(newRecord);
         localStorage.setItem('attendance', JSON.stringify(attendance));
-        return { success: true, record: newRecord };
+        return { success: true, record: newRecord, type: 'checkin' };
     }
 
     static getPlayerAttendance(playerId) {
@@ -240,7 +259,7 @@ class Database {
         return JSON.parse(localStorage.getItem('coaches')) || [];
     }
 
-    static addCoach(name, specialty) {
+    static addCoach(data) {
         const coaches = this.getCoaches();
         const coachNumber = coaches.length + 1;
         const paddedNumber = coachNumber.toString().padStart(4, '0');
@@ -248,8 +267,10 @@ class Database {
 
         const newCoach = {
             id: newId,
-            name: name,
-            specialty: specialty || 'General Fitness',
+            name: data.name,
+            specialty: data.specialty || 'General Fitness',
+            description: data.description || '',
+            imageUrl: data.imageUrl || 'https://images.unsplash.com/photo-1594381898411-846e7d193883?auto=format&fit=crop&q=80&w=400',
             status: 'Active',
             joinedAt: new Date().toISOString()
         };
@@ -257,6 +278,66 @@ class Database {
         coaches.push(newCoach);
         localStorage.setItem('coaches', JSON.stringify(coaches));
         return { success: true, coach: newCoach };
+    }
+
+    static updateCoach(id, data) {
+        const coaches = this.getCoaches();
+        const index = coaches.findIndex(c => c.id === id);
+        if (index !== -1) {
+            coaches[index] = { ...coaches[index], ...data };
+            localStorage.setItem('coaches', JSON.stringify(coaches));
+            return true;
+        }
+        return false;
+    }
+
+    static deleteCoach(id) {
+        let coaches = this.getCoaches();
+        const initialLength = coaches.length;
+        coaches = coaches.filter(c => c.id !== id);
+        if (coaches.length !== initialLength) {
+            localStorage.setItem('coaches', JSON.stringify(coaches));
+            return true;
+        }
+        return false;
+    }
+
+    // --- Fee Plan Management ---
+    static getFeePlans() {
+        return JSON.parse(localStorage.getItem('feePlans')) || [];
+    }
+
+    static addFeePlan(data) {
+        const plans = this.getFeePlans();
+        const newPlan = {
+            id: `FEE-${Date.now()}`,
+            className: data.className,
+            timing: data.timing,
+            duration: data.duration,
+            price: data.price,
+            description: data.description
+        };
+        plans.push(newPlan);
+        localStorage.setItem('feePlans', JSON.stringify(plans));
+        return { success: true, plan: newPlan };
+    }
+
+    static updateFeePlan(id, data) {
+        const plans = this.getFeePlans();
+        const index = plans.findIndex(p => p.id === id);
+        if (index !== -1) {
+            plans[index] = { ...plans[index], ...data };
+            localStorage.setItem('feePlans', JSON.stringify(plans));
+            return true;
+        }
+        return false;
+    }
+
+    static deleteFeePlan(id) {
+        const plans = this.getFeePlans();
+        const filtered = plans.filter(p => p.id !== id);
+        localStorage.setItem('feePlans', JSON.stringify(filtered));
+        return true;
     }
 
     // --- Batch Management ---

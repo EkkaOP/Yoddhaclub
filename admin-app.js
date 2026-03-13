@@ -102,7 +102,8 @@ document.addEventListener('DOMContentLoaded', () => {
             <tr>
                 <td><strong>${record.playerId}</strong></td>
                 <td>${record.playerName}</td>
-                <td>${record.time}</td>
+                <td>${record.timeIn || record.time || '—'}</td>
+                <td>${record.timeOut || '—'}</td>
                 <td><span class="badge badge-success">${record.status}</span></td>
             </tr>
         `).join('');
@@ -110,14 +111,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     loadTodayAttendance();
 
+    let html5QrCode;
+
     if (qrScannerModal && (openScannerBtn || openScannerNav) && closeScannerModal) {
         
-        const closeScanner = () => {
+        const closeScanner = async () => {
             qrScannerModal.classList.remove('show');
-            if (html5QrcodeScanner) {
-                html5QrcodeScanner.clear().catch(error => {
-                    console.error("Failed to clear scanner. ", error);
-                });
+            if (html5QrCode && html5QrCode.isScanning) {
+                try {
+                    await html5QrCode.stop();
+                } catch (error) {
+                    console.error("Failed to stop scanner.", error);
+                }
             }
             const resultDiv = document.getElementById('scanResult');
             if(resultDiv) {
@@ -126,16 +131,61 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('reader').style.display = 'block';
         };
 
-        const openScanner = (e) => {
+        const openScanner = async (e) => {
             e.preventDefault();
+            
+            // 1. Check if library is loaded
+            if (typeof Html5Qrcode === 'undefined') {
+                alert("QR Scanner library not loaded. Please check your internet connection and try again.");
+                return;
+            }
+
+            // 2. Check for Secure Context (Required for camera access)
+            if (!window.isSecureContext && window.location.hostname !== 'localhost') {
+                alert("Camera access requires a secure connection (HTTPS). Please ensure your site is running over HTTPS.");
+            }
+
             qrScannerModal.classList.add('show');
-            document.getElementById('reader').style.display = 'block';
+            const readerDiv = document.getElementById('reader');
+            readerDiv.style.display = 'block';
+            readerDiv.innerHTML = ""; // Clear previous errors or content
             document.getElementById('scanResult').style.display = 'none';
             
-            html5QrcodeScanner = new Html5QrcodeScanner(
-                "reader", { fps: 10, qrbox: { width: 250, height: 250 } }, false);
+            html5QrCode = new Html5Qrcode("reader");
+            
+            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+
+            try {
+                await html5QrCode.start(
+                    { facingMode: "environment" }, 
+                    config, 
+                    onScanSuccess
+                );
+            } catch (err) {
+                console.error("Camera access error:", err);
+                let errorMessage = "Unable to access camera.";
+                let iconClass = "fa-solid fa-camera-slash";
                 
-            html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+                if (err.name === 'NotAllowedError' || err === "NotAllowedError") {
+                    errorMessage = "Camera permission denied. Please allow camera access in your browser settings.";
+                } else if (err.name === 'NotFoundError' || err === "NotFoundError") {
+                    errorMessage = "No camera found on this device.";
+                } else if (!window.isSecureContext && window.location.hostname !== 'localhost') {
+                    errorMessage = "HTTPS Required: Browser blocks camera access on non-secure connections.";
+                    iconClass = "fa-solid fa-shield-halved";
+                }
+                
+                readerDiv.innerHTML = `
+                    <div class="text-center p-4" style="background: rgba(220,38,38,0.05); border-radius: 12px; border: 1px dashed var(--error);">
+                        <i class="${iconClass} mb-3" style="font-size: 3rem; color: var(--error);"></i>
+                        <p class="text-danger font-weight-bold mb-1">${errorMessage}</p>
+                        <p class="small text-muted mb-3">Ensure you are using HTTPS and have granted permissions.</p>
+                        <button class="btn btn-sm btn-primary" onclick="location.reload()" style="padding: 0.5rem 1rem; font-size: 0.8rem;">
+                            <i class="fa-solid fa-rotate-right mr-1"></i> Try Refreshing
+                        </button>
+                    </div>
+                `;
+            }
         };
 
         if(openScannerBtn) openScannerBtn.addEventListener('click', openScanner);
@@ -157,8 +207,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 const playerData = JSON.parse(decodedText);
                 
                 if (playerData.id && playerData.name) {
-                    if (html5QrcodeScanner) {
-                        html5QrcodeScanner.clear();
+                    if (html5QrCode && html5QrCode.isScanning) {
+                        html5QrCode.stop().catch(err => console.error("Error stopping after scan:", err));
                     }
                     
                     document.getElementById('reader').style.display = 'none';
@@ -170,9 +220,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     const infoP = document.getElementById('scannedPlayerInfo');
                     
                     if (result.success) {
-                        infoP.innerHTML = `<strong>${playerData.name}</strong> (${playerData.id})<br><small>Logged at ${result.record.time}</small>`;
+                        const isCheckOut = result.type === 'checkout';
+                        const actionTime = isCheckOut ? result.record.timeOut : result.record.timeIn;
+                        
+                        infoP.innerHTML = `<strong>${playerData.name}</strong> (${playerData.id})<br><small>${isCheckOut ? 'Check-Out' : 'Check-In'} at ${actionTime}</small>`;
                         infoP.className = "mt-2 text-dark";
-                        document.querySelector('#scanResult h4').textContent = "Attendance Marked!";
+                        document.querySelector('#scanResult h4').textContent = isCheckOut ? "Check-Out Successful!" : "Check-In Successful!";
                         document.querySelector('#scanResult h4').className = "text-success font-weight-bold";
                         document.querySelector('.success-animation').innerHTML = '<i class="fa-solid fa-circle-check" style="font-size: 3rem;"></i>';
                         document.querySelector('.success-animation').className = "success-animation text-success mb-2";
@@ -180,12 +233,13 @@ document.addEventListener('DOMContentLoaded', () => {
                         // Update table
                         loadTodayAttendance();
                     } else {
+                        const isCompleted = result.type === 'completed';
                         infoP.innerHTML = `<strong>${playerData.name}</strong><br><small>${result.message}</small>`;
-                        infoP.className = "mt-2 text-warning";
-                        document.querySelector('#scanResult h4').textContent = "Already Marked";
-                        document.querySelector('#scanResult h4').className = "text-warning font-weight-bold";
-                        document.querySelector('.success-animation').innerHTML = '<i class="fa-solid fa-circle-exclamation" style="font-size: 3rem;"></i>';
-                        document.querySelector('.success-animation').className = "success-animation text-warning mb-2";
+                        infoP.className = isCompleted ? "mt-2 text-info" : "mt-2 text-warning";
+                        document.querySelector('#scanResult h4').textContent = isCompleted ? "Duty Completed" : "Already Marked";
+                        document.querySelector('#scanResult h4').className = isCompleted ? "text-info font-weight-bold" : "text-warning font-weight-bold";
+                        document.querySelector('.success-animation').innerHTML = isCompleted ? '<i class="fa-solid fa-flag-checkered" style="font-size: 3rem;"></i>' : '<i class="fa-solid fa-circle-exclamation" style="font-size: 3rem;"></i>';
+                        document.querySelector('.success-animation').className = isCompleted ? "success-animation text-info mb-2" : "success-animation text-warning mb-2";
                     }
 
                     resultDiv.style.display = 'block';
@@ -862,6 +916,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeManageCoachesModal = document.getElementById('closeManageCoachesModal');
     const allCoachesTableBody = document.querySelector('#allCoachesTable tbody');
     const addCoachForm = document.getElementById('addCoachForm');
+    const coachEditId = document.getElementById('coachEditId');
+    const coachSubmitBtn = document.getElementById('coachSubmitBtn');
+    const coachCancelEditBtn = document.getElementById('coachCancelEditBtn');
 
     if (manageCoachesModal && openManageCoachesNav && closeManageCoachesModal && allCoachesTableBody && addCoachForm) {
         
@@ -869,22 +926,64 @@ document.addEventListener('DOMContentLoaded', () => {
             const coaches = Database.getCoaches();
             
             if(coaches.length === 0) {
-                allCoachesTableBody.innerHTML = `<tr><td colspan="4" class="text-center text-muted">No coaches found.</td></tr>`;
+                allCoachesTableBody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">No coaches found.</td></tr>`;
                 return;
             }
 
             allCoachesTableBody.innerHTML = coaches.map(c => `
                 <tr>
-                    <td><strong>${c.id}</strong></td>
-                    <td>${c.name}</td>
+                    <td><img src="${c.imageUrl || 'https://images.unsplash.com/photo-1594381898411-846e7d193883?auto=format&fit=crop&q=80&w=400'}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 50%;"></td>
+                    <td><strong>${c.name}</strong></td>
                     <td>${c.specialty}</td>
                     <td><span class="badge ${c.status === 'Active' ? 'badge-success' : 'badge-secondary'}">${c.status}</span></td>
+                    <td>
+                        <button class="btn btn-sm edit-coach-btn" data-id="${c.id}" style="padding: 0.25rem 0.5rem; background: transparent; border: 1px solid var(--primary); color: var(--primary);"><i class="fa-solid fa-pen-to-square"></i></button>
+                        <button class="btn btn-sm delete-coach-btn" data-id="${c.id}" style="padding: 0.25rem 0.5rem; background: transparent; border: 1px solid var(--error); color: var(--error);"><i class="fa-solid fa-trash"></i></button>
+                    </td>
                 </tr>
             `).join('');
+
+            // Edit listener
+            document.querySelectorAll('.edit-coach-btn').forEach(btn => {
+                btn.onclick = () => {
+                    const id = btn.getAttribute('data-id');
+                    const coach = Database.getCoaches().find(c => c.id === id);
+                    if (coach) {
+                        coachEditId.value = coach.id;
+                        document.getElementById('newCoachName').value = coach.name;
+                        document.getElementById('newCoachSpecialty').value = coach.specialty;
+                        document.getElementById('newCoachDesc').value = coach.description || '';
+                        document.getElementById('newCoachImage').value = coach.imageUrl || '';
+                        coachSubmitBtn.textContent = 'Update Coach';
+                        coachCancelEditBtn.style.display = 'inline-block';
+                    }
+                };
+            });
+
+            // Delete listener
+            document.querySelectorAll('.delete-coach-btn').forEach(btn => {
+                btn.onclick = () => {
+                    const id = btn.getAttribute('data-id');
+                    if (confirm('Are you sure you want to delete this coach?')) {
+                        Database.deleteCoach(id);
+                        loadAllCoaches();
+                    }
+                };
+            });
         };
+
+        const resetCoachForm = () => {
+            addCoachForm.reset();
+            coachEditId.value = '';
+            coachSubmitBtn.textContent = 'Save Coach';
+            coachCancelEditBtn.style.display = 'none';
+        };
+
+        coachCancelEditBtn.onclick = resetCoachForm;
 
         openManageCoachesNav.addEventListener('click', (e) => {
             e.preventDefault();
+            resetCoachForm();
             loadAllCoaches();
             manageCoachesModal.classList.add('show');
         });
@@ -901,27 +1000,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
         addCoachForm.addEventListener('submit', (e) => {
             e.preventDefault();
-            const nameInput = document.getElementById('newCoachName');
-            const specialtyInput = document.getElementById('newCoachSpecialty');
-            
-            const name = nameInput.value.trim();
-            const specialty = specialtyInput.value.trim();
+            const id = coachEditId.value;
+            const data = {
+                name: document.getElementById('newCoachName').value.trim(),
+                specialty: document.getElementById('newCoachSpecialty').value.trim(),
+                description: document.getElementById('newCoachDesc').value.trim(),
+                imageUrl: document.getElementById('newCoachImage').value.trim()
+            };
 
-            if (name && specialty) {
-                Database.addCoach(name, specialty);
-                nameInput.value = '';
-                specialtyInput.value = '';
-                loadAllCoaches(); // refresh table
-                
-                // Show a quick alert or just rely on table updating
-                const submitBtn = addCoachForm.querySelector('button[type="submit"]');
-                const originalText = submitBtn.textContent;
-                submitBtn.textContent = 'Added!';
-                submitBtn.classList.add('btn-success');
-                setTimeout(() => {
-                    submitBtn.textContent = originalText;
-                    submitBtn.classList.remove('btn-success');
-                }, 2000);
+            if (data.name && data.specialty) {
+                if (id) {
+                    Database.updateCoach(id, data);
+                } else {
+                    Database.addCoach(data);
+                }
+                resetCoachForm();
+                loadAllCoaches();
             }
         });
     }
@@ -1078,7 +1172,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         ourPlayersTableBody.innerHTML = players.map(p => `
             <tr>
-                <td><img src="${p.imageUrl}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 50%;" alt="${p.name}"></td>
+                <td><div style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; background: #E1306C; color: white; border-radius: 50%; font-size: 1.2rem;"><i class="fa-brands fa-instagram"></i></div></td>
                 <td><strong>${p.name}</strong></td>
                 <td>${p.achievement}</td>
                 <td>
@@ -1129,6 +1223,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const url = urlInput.value.trim();
 
             if (name && achievement && url) {
+                // Validate Instagram URL
+                const igRegex = /^https?:\/\/(www\.)?instagram\.com\/(p|reel|reels)\/[\w-]+\/?.*$/;
+                if (!igRegex.test(url)) {
+                    alert('Please enter a valid Instagram post or reel URL (e.g. https://www.instagram.com/p/abc/)');
+                    return;
+                }
+
                 Database.addOurPlayer(name, achievement, url);
                 nameInput.value = '';
                 achievementInput.value = '';
@@ -1246,6 +1347,118 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Initial load
         window.loadAllBatches();
+    }
+
+    // Manage Fee Plans Logic
+    const manageFeePlansModal = document.getElementById('manageFeePlansModal');
+    const openManageFeePlansNav = document.getElementById('openManageFeePlansNav');
+    const closeManageFeePlansModal = document.getElementById('closeManageFeePlansModal');
+    const allFeePlansTableBody = document.querySelector('#allFeePlansTable tbody');
+    const feePlanForm = document.getElementById('feePlanForm');
+    const feePlanEditId = document.getElementById('feePlanEditId');
+    const feePlanSubmitBtn = document.getElementById('feePlanSubmitBtn');
+    const feePlanCancelEditBtn = document.getElementById('feePlanCancelEditBtn');
+
+    if (manageFeePlansModal && openManageFeePlansNav && closeManageFeePlansModal && allFeePlansTableBody && feePlanForm) {
+        
+        const loadAllFeePlans = () => {
+            const plans = Database.getFeePlans();
+            
+            if(plans.length === 0) {
+                allFeePlansTableBody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">No fee plans found.</td></tr>`;
+                return;
+            }
+
+            allFeePlansTableBody.innerHTML = plans.map(p => `
+                <tr>
+                    <td><strong>${p.className}</strong></td>
+                    <td>${p.timing}</td>
+                    <td>${p.duration}</td>
+                    <td>₹${p.price}</td>
+                    <td>
+                        <button class="btn btn-sm edit-fee-btn" data-id="${p.id}" style="padding: 0.25rem 0.5rem; background: transparent; border: 1px solid var(--primary); color: var(--primary);"><i class="fa-solid fa-pen-to-square"></i></button>
+                        <button class="btn btn-sm delete-fee-btn" data-id="${p.id}" style="padding: 0.25rem 0.5rem; background: transparent; border: 1px solid var(--error); color: var(--error);"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+
+            // Edit listener
+            document.querySelectorAll('.edit-fee-btn').forEach(btn => {
+                btn.onclick = () => {
+                    const id = btn.getAttribute('data-id');
+                    const plan = Database.getFeePlans().find(p => p.id === id);
+                    if (plan) {
+                        feePlanEditId.value = plan.id;
+                        document.getElementById('feePlanClassName').value = plan.className;
+                        document.getElementById('feePlanTiming').value = plan.timing;
+                        document.getElementById('feePlanDuration').value = plan.duration;
+                        document.getElementById('feePlanPrice').value = plan.price;
+                        document.getElementById('feePlanDesc').value = plan.description || '';
+                        feePlanSubmitBtn.textContent = 'Update Plan';
+                        feePlanCancelEditBtn.style.display = 'inline-block';
+                    }
+                };
+            });
+
+            // Delete listener
+            document.querySelectorAll('.delete-fee-btn').forEach(btn => {
+                btn.onclick = () => {
+                    const id = btn.getAttribute('data-id');
+                    if (confirm('Are you sure you want to delete this fee plan?')) {
+                        Database.deleteFeePlan(id);
+                        loadAllFeePlans();
+                    }
+                };
+            });
+        };
+
+        const resetFeePlanForm = () => {
+            feePlanForm.reset();
+            feePlanEditId.value = '';
+            feePlanSubmitBtn.textContent = 'Save Fee Plan';
+            feePlanCancelEditBtn.style.display = 'none';
+        };
+
+        feePlanCancelEditBtn.onclick = resetFeePlanForm;
+
+        openManageFeePlansNav.addEventListener('click', (e) => {
+            e.preventDefault();
+            resetFeePlanForm();
+            loadAllFeePlans();
+            manageFeePlansModal.classList.add('show');
+        });
+
+        closeManageFeePlansModal.addEventListener('click', () => {
+            manageFeePlansModal.classList.remove('show');
+        });
+
+        manageFeePlansModal.addEventListener('click', (e) => {
+            if (e.target === manageFeePlansModal) {
+                manageFeePlansModal.classList.remove('show');
+            }
+        });
+
+        feePlanForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const id = feePlanEditId.value;
+            const data = {
+                className: document.getElementById('feePlanClassName').value,
+                timing: document.getElementById('feePlanTiming').value.trim(),
+                duration: document.getElementById('feePlanDuration').value,
+                price: document.getElementById('feePlanPrice').value.trim(),
+                description: document.getElementById('feePlanDesc').value.trim()
+            };
+
+            if (data.className && data.timing && data.price) {
+                if (id) {
+                    Database.updateFeePlan(id, data);
+                } else {
+                    Database.addFeePlan(data);
+                }
+                resetFeePlanForm();
+                loadAllFeePlans();
+            }
+        });
     }
 
     // Fee Management Logic

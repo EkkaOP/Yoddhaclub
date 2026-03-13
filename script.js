@@ -282,18 +282,158 @@ document.addEventListener('DOMContentLoaded', () => {
     if (ourPlayersContainer && typeof Database !== 'undefined') {
         const players = Database.getOurPlayers();
         if (players.length > 0) {
-            ourPlayersContainer.innerHTML = players.map(p => `
-                <div class="card champion-card">
-                    <img src="${p.imageUrl}" alt="${p.name}">
+            ourPlayersContainer.innerHTML = players.map(p => {
+                // Ensure URL ends with /embed/ for iframe
+                let embedUrl = p.imageUrl;
+                if (!embedUrl.endsWith('/')) embedUrl += '/';
+                if (!embedUrl.includes('/embed/')) embedUrl += 'embed/';
+
+                return `
+                <div class="card champion-card" onclick="window.open('${p.imageUrl}', '_blank')">
+                    <div class="instagram-embed-container">
+                        <iframe src="${embedUrl}" frameborder="0" scrolling="no" allowtransparency="true"></iframe>
+                        <div class="embed-click-layer"></div>
+                    </div>
                     <div class="champ-badge"><i class="fa-solid fa-star"></i></div>
                     <div class="card-content">
                         <h3>${p.name}</h3>
                         <p class="achievement">${p.achievement}</p>
                     </div>
                 </div>
-            `).join('');
+            `}).join('');
         } else {
             ourPlayersContainer.innerHTML = '<p class="text-muted" style="padding: 2rem;">Coming soon...</p>';
         }
+    }
+
+    // ---- Fee Plans Rendering ----
+    const feePlansContainer = document.getElementById('feePlansContainer');
+    if (feePlansContainer && typeof Database !== 'undefined') {
+        const plans = Database.getFeePlans();
+        if (plans.length > 0) {
+            feePlansContainer.innerHTML = plans.map(p => {
+                let iconClass = 'fa-solid fa-medal';
+                const name = p.className.toLowerCase();
+                if (name.includes('kickboxing')) iconClass = 'fa-solid fa-boxing-glove';
+                else if (name.includes('mma') || name.includes('martial arts')) iconClass = 'fa-solid fa-hand-fist';
+                else if (name.includes('fitness')) iconClass = 'fa-solid fa-dumbbell';
+
+                return `
+                <div class="fee-card" onclick="window.location.href='login.html'">
+                    <div class="fee-card-graphic">
+                        <i class="${iconClass}"></i>
+                    </div>
+                    <div class="class-name">${p.className}</div>
+                    <div class="timing"><i class="fa-regular fa-clock"></i> ${p.timing}</div>
+                    <div class="duration">${p.duration}</div>
+                    <div class="price"><span>₹</span>${p.price}</div>
+                    <div class="details">${p.description}</div>
+                    <button class="btn btn-primary btn-full">Get Started</button>
+                </div>
+            `;}).join('');
+        } else {
+            feePlansContainer.innerHTML = '<p class="text-muted" style="padding: 2rem;">No fee plans available.</p>';
+        }
+    }
+
+    // ---- Coaches Rendering ----
+    const publicCoachesContainer = document.getElementById('publicCoachesContainer');
+    if (publicCoachesContainer && typeof Database !== 'undefined') {
+        const coaches = Database.getCoaches();
+        if (coaches.length > 0) {
+            publicCoachesContainer.innerHTML = coaches.map(c => `
+                <div class="card coach-card">
+                    <img src="${c.imageUrl || 'https://images.unsplash.com/photo-1594381898411-846e7d193883?auto=format&fit=crop&q=80&w=400'}" alt="${c.name}">
+                    <div class="card-content">
+                        <h3>${c.name}</h3>
+                        <p class="specialty">${c.specialty}</p>
+                        <p class="desc">${c.description || ''}</p>
+                    </div>
+                </div>
+            `).join('');
+        } else {
+            publicCoachesContainer.innerHTML = '<p class="text-muted" style="padding: 2rem;">Coming soon...</p>';
+        }
+    }
+});
+
+// Footer Modal System
+document.addEventListener('DOMContentLoaded', () => {
+    const footerModal = document.getElementById('footerPopupModal');
+    const modalBody = document.getElementById('footerModalBody');
+    const closeModal = document.getElementById('closeFooterModal');
+    const modalOverlay = document.getElementById('footerModalOverlay');
+
+    if (footerModal && modalBody && closeModal && modalOverlay) {
+        const modalContent = {
+            about: {
+                title: 'About Club',
+                body: `
+                    <p><strong>Yoddha Kickboxing & MMA Club</strong> is a professional martial arts training center dedicated to building discipline, fitness, and self-defense skills. Our mission is to train children, youth, and athletes with proper guidance so they can become physically strong, mentally confident, and highly disciplined.</p>
+                    <p>At our club, we provide professional training in Kickboxing and MMA (Mixed Martial Arts) under the supervision of experienced coaches. Our training programs are designed for beginners as well as advanced athletes, allowing every student to improve their skills, strength, and overall fitness.</p>
+                    <p>We believe martial arts is not only about fighting skills but also about respect, confidence, discipline, and sportsmanship. Many of our students participate in district, state, and national-level competitions and continue to achieve great results.</p>
+                    <p>Our goal at Yoddha Kickboxing & MMA Club is to provide a safe and motivating environment where every student can grow, learn, and reach their full potential.</p>
+                `
+            },
+            contact: {
+                title: 'Contact Us',
+                body: `
+                    <p>If you would like to learn more about Yoddha Kickboxing & MMA Club, join our training programs, or ask about upcoming events, feel free to contact us.</p>
+                    <div style="margin-top: 1.5rem; padding: 1.5rem; background: var(--bg-light); border-radius: 8px; border: 1px solid var(--border);">
+                        <p><strong>Club Name:</strong> Yoddha Kickboxing & MMA Club</p>
+                        <p><strong>Location:</strong> Ambikapur, Chhattisgarh, India</p>
+                        <p><strong>Phone:</strong> <a href="tel:9644596082" style="color:var(--primary); text-decoration:none;">9644596082</a></p>
+                        <p><strong>Email:</strong> <a href="mailto:yoddhaclub20@gmail.com" style="color:var(--primary); text-decoration:none;">yoddhaclub20@gmail.com</a></p>
+                    </div>
+                    <p style="margin-top: 1rem;">You can also visit our club directly or contact us through social media. Our team will be happy to assist you with any information you need.</p>
+                `
+            },
+            privacy: {
+                title: 'Privacy Policy',
+                body: `
+                    <p>At Yoddha Kickboxing & MMA Club, we respect the privacy of our members and website users. Any personal information collected through our website or application is handled with care and kept secure.</p>
+                    <p>We only collect necessary information such as name, contact details, and basic profile information for purposes like membership registration, event participation, and communication.</p>
+                    <p>We do not sell, trade, or share your personal information with third parties without your consent, except when required for managing club services.</p>
+                    <p>We take reasonable security measures to protect user data and ensure that personal information remains safe.</p>
+                `
+            }
+        };
+
+        function openFooterModal(type) {
+            const content = modalContent[type];
+            if (content) {
+                modalBody.innerHTML = `<h2>${content.title}</h2>${content.body}`;
+                footerModal.classList.add('show');
+                document.body.style.overflow = 'hidden'; // Prevent scrolling
+            }
+        }
+
+        function closeFooterPopup() {
+            footerModal.classList.remove('show');
+            document.body.style.overflow = ''; // Restore scrolling
+        }
+
+        const aboutBtn = document.getElementById('openAbout');
+        const contactBtn = document.getElementById('openContact');
+        const privacyBtn = document.getElementById('openPrivacy');
+
+        if (aboutBtn) aboutBtn.onclick = () => openFooterModal('about');
+        if (contactBtn) contactBtn.onclick = () => openFooterModal('contact');
+        if (privacyBtn) privacyBtn.onclick = () => openFooterModal('privacy');
+
+        closeModal.onclick = closeFooterPopup;
+        modalOverlay.onclick = closeFooterPopup;
+
+        // Close on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && footerModal.classList.contains('show')) {
+                closeFooterPopup();
+            }
+        });
+        
+        // Ensure clicking content doesn't close
+        footerModal.querySelector('.footer-modal-content').onclick = (e) => {
+            e.stopPropagation();
+        };
     }
 });

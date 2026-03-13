@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
-    const currentPlayer = Database.getCurrentPlayer();
+    let currentPlayer = Database.getCurrentPlayer();
     if (!currentPlayer) {
         window.location.href = 'login.html';
         return;
@@ -1514,11 +1514,61 @@ document.addEventListener('DOMContentLoaded', () => {
     const logDateInput = document.getElementById('logDate');
     if (logDateInput) logDateInput.value = new Date().toISOString().split('T')[0];
 
-    if (logNav) logNav.addEventListener('click', e => { e.preventDefault(); openModal('trainingLogModal'); });
-    if (closeLog) closeLog.addEventListener('click', () => closeModal('trainingLogModal'));
-    if (logModal) logModal.addEventListener('click', e => { if (e.target === logModal) closeModal('trainingLogModal'); });
-
     if (logForm) {
+        // Load custom names
+        const loadCustomNames = () => {
+            const player = Database.getPlayerById(currentPlayer.id) || currentPlayer;
+            if (player.customExercises) {
+                Object.keys(player.customExercises).forEach(category => {
+                    Object.keys(player.customExercises[category]).forEach(key => {
+                        const lblId = `lbl${key.charAt(0).toUpperCase() + key.slice(1)}`;
+                        const el = document.getElementById(lblId);
+                        if (el) el.textContent = player.customExercises[category][key];
+                    });
+                });
+            }
+        };
+
+        // Open handler
+        if (logNav) logNav.addEventListener('click', e => { 
+            e.preventDefault(); 
+            loadCustomNames();
+            openModal('trainingLogModal'); 
+        });
+
+        if (closeLog) closeLog.addEventListener('click', () => closeModal('trainingLogModal'));
+        if (logModal) logModal.addEventListener('click', e => { if (e.target === logModal) closeModal('trainingLogModal'); });
+
+        // Rename logic
+        document.querySelectorAll('.edit-ex-icon').forEach(icon => {
+            icon.addEventListener('click', () => {
+                const cat = icon.dataset.cat;
+                const key = icon.dataset.key;
+                const lblId = icon.dataset.lbl;
+                const labelEl = document.getElementById(lblId);
+                const oldName = labelEl.textContent;
+                
+                const newName = prompt(`Enter new name for "${oldName}":`, oldName);
+                if (newName && newName.trim() && newName !== oldName) {
+                    const cleanName = newName.trim();
+                    labelEl.textContent = cleanName;
+                    
+                    // Persist to DB
+                    const players = Database.getPlayers();
+                    const pIdx = players.findIndex(p => p.id === currentPlayer.id);
+                    if (pIdx !== -1) {
+                        if (!players[pIdx].customExercises) players[pIdx].customExercises = { punches: {}, kicks: {}, conditioning: {} };
+                        if (!players[pIdx].customExercises[cat]) players[pIdx].customExercises[cat] = {};
+                        players[pIdx].customExercises[cat][key] = cleanName;
+                        localStorage.setItem('players', JSON.stringify(players));
+                        // Update local object
+                        currentPlayer = players[pIdx];
+                        localStorage.setItem('currentUser', JSON.stringify(currentPlayer));
+                    }
+                }
+            });
+        });
+
         logForm.addEventListener('submit', e => {
             e.preventDefault();
             const g = id => parseInt(document.getElementById(id)?.value) || 0;
@@ -1536,6 +1586,7 @@ document.addEventListener('DOMContentLoaded', () => {
             logForm.reset();
             if (logDateInput) logDateInput.value = new Date().toISOString().split('T')[0];
             updateNotifBell();
+            loadCustomNames(); // Re-apply names after reset
         });
     }
 
